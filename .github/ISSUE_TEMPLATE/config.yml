@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Homebridge Discord Channel for Resideo
+  - name: Homebridge Discord Channel for August
     url: https://discord.gg/8fpZA4S
     about: Please ask and answer questions here.
-  - name: Homebridge-Resideo - Pull Requests
-    url: https://github.com/donavanbecker/homebridge-resideo/pulls
+  - name: Homebridge-August - Pull Requests
+    url: https://github.com/donavanbecker/homebridge-august/pulls
     about: Please report security vulnerabilities here.

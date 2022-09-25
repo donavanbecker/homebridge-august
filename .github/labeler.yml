@@ -1,6 +1,6 @@
-# Add 'branding' to any file changes within 'resideo' folder
+# Add 'branding' to any file changes within 'august' folder
 branding:
-  - resideo/*
+  - august/*
   - honeywell/*
 
 # Add 'enhancement' label to any change to index.js file

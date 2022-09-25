@@ -1,7 +1,7 @@
 import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { interval, Subject } from 'rxjs';
 import { skipWhile, take } from 'rxjs/operators';
-import { ResideoPlatform } from '../platform';
+import { AugustPlatform } from '../platform';
 import * as settings from '../settings';
 
 /**
@@ -37,7 +37,7 @@ export class LeakSensor {
   doSensorUpdate!: Subject<void>;
 
   constructor(
-    private readonly platform: ResideoPlatform,
+    private readonly platform: AugustPlatform,
     private accessory: PlatformAccessory,
     public readonly locationId: settings.location['locationID'],
     public device: settings.device & settings.devicesConfig,
@@ -45,14 +45,14 @@ export class LeakSensor {
     this.logs(device);
     this.refreshRate(device);
     this.config(device);
-    // this is subject we use to track when we need to POST changes to the Resideo API
+    // this is subject we use to track when we need to POST changes to the August API
     this.doSensorUpdate = new Subject();
     this.SensorUpdateInProgress = false;
 
     // set accessory information
     accessory
       .getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Resideo')
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'August')
       .setCharacteristic(this.platform.Characteristic.Model, device.deviceType)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, device.deviceID)
       .setCharacteristic(this.platform.Characteristic.FirmwareRevision, accessory.context.firmwareRevision)
@@ -160,7 +160,7 @@ export class LeakSensor {
   }
 
   /**
-   * Parse the device status from the Resideo api
+   * Parse the device status from the August api
    */
   async parseStatus(): Promise<void> {
     // Leak Service
@@ -196,24 +196,18 @@ export class LeakSensor {
   }
 
   /**
-   * Asks the Resideo Home API for the latest device information
+   * Asks the August Home API for the latest device information
    */
   async refreshStatus(): Promise<void> {
     try {
-      const device: any = (
-        await this.platform.axios.get(`${settings.DeviceURL}/waterLeakDetectors/${this.device.deviceID}`, {
-          params: {
-            locationId: this.locationId,
-          },
-        })
-      ).data;
+      const device: any = 1;
       this.device = device;
       this.debugLog(`Leak Sensor: ${this.accessory.displayName} device: ${JSON.stringify(this.device)}`);
       this.parseStatus();
       this.updateHomeKitCharacteristics();
     } catch (e: any) {
       this.action = 'refreshStatus';
-      this.resideoAPIError(e);
+      this.AugustAPIError(e);
       this.apiError(e);
     }
   }
@@ -272,7 +266,7 @@ export class LeakSensor {
     //throw new this.platform.api.hap.HapStatusError(HAPStatus.SERVICE_COMMUNICATION_FAILURE);
   }
 
-  async resideoAPIError(e: any): Promise<void> {
+  async AugustAPIError(e: any): Promise<void> {
     if (this.device.retry) {
       if (this.action === 'refreshStatus') {
         // Refresh the status from the API

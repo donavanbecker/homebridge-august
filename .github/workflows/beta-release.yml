@@ -19,7 +19,7 @@ jobs:
   publish:
     needs: lint
 
-    if: ${{ github.repository == 'donavanbecker/homebridge-resideo' }}
+    if: ${{ github.repository == 'donavanbecker/homebridge-august' }}
 
     uses: donavanbecker/.github/.github/workflows/npm-publish.yml@latest
     with:

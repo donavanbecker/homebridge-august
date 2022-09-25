@@ -1,16 +1,16 @@
 {
-  "displayName": "Homebridge Resideo",
-  "name": "homebridge-resideo",
-  "version": "1.0.0",
-  "description": "The [Homebridge](https://homebridge.io) Resideo plugin allows you to access your [Resideo](https://resideo.com) device(s) from HomeKit.",
+  "displayName": "Homebridge August",
+  "name": "homebridge-august",
+  "version": "0.0.5",
+  "description": "The [Homebridge](https://homebridge.io) August plugin allows you to access your [August](https://august.com) & [Yale](https://shopyalehome.com) device(s) from HomeKit.",
   "author": "donavanbecker",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/donavanbecker/homebridge-resideo.git"
+    "url": "https://github.com/donavanbecker/homebridge-august.git"
   },
   "bugs": {
-    "url": "https://github.com/donavanbecker/homebridge-resideo/issues"
+    "url": "https://github.com/donavanbecker/homebridge-august/issues"
   },
   "engines": {
     "homebridge": "^1.5.0",
@@ -40,29 +40,17 @@
   ],
   "keywords": [
     "homebridge-plugin",
-    "honeywell",
-    "honeywell-home",
-    "thermostat",
-    "roomsensor",
-    "leaksensor",
-    "room sensor",
-    "leak sensor",
-    "lcc",
-    "tcc",
-    "Resideo",
-    "honeywellhome",
-    "honeywell home",
-    "temperature",
-    "humidity",
-    "leak"
+    "august",
+    "yale",
+    "lock"
   ],
   "dependencies": {
-    "axios": "^0.27.2",
+    "august-api": "^1.4.0",
     "rxjs": "^7.5.6",
     "@homebridge/plugin-ui-utils": "^0.0.19"
   },
   "devDependencies": {
-    "@types/node": "^18.7.19",
+    "@types/node": "^18.7.21",
     "@typescript-eslint/eslint-plugin": "^5.38.0",
     "@typescript-eslint/parser": "^5.38.0",
     "eslint": "^8.24.0",
@@ -73,7 +61,6 @@
     "rimraf": "^3.0.2",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.3",
-    "typescript-axios-wb": "^1.0.3",
     "npm-check-updates": "^16.3.2",
     "prettier": "2.7.1"
   }
