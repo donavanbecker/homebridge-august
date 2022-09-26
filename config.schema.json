@@ -2,7 +2,6 @@
   "pluginAlias": "August",
   "pluginType": "platform",
   "singular": true,
-  "customUi": false,
   "schema": {
     "type": "object",
     "properties": {

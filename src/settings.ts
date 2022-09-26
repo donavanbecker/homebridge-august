@@ -17,12 +17,26 @@ export interface AugustPlatformConfig extends PlatformConfig {
 }
 
 export type credentials = {
-  augustId?: any;
-  password?: any;
+  augustId?: string; // Phone must be formatted +[countrycode][number]
+  password?: string;
+  validateCode?: string;
 };
 
 export type options = {
   refreshRate?: number;
   pushRate?: number;
   logging?: string;
+};
+
+export type device = {
+  lockId: string;
+  lockDetails: lockDetails | Record<string, never>;
+};
+
+export type lockDetails = {
+  LockName: string;
+  UserType: string;
+  macAddress: string;
+  HouseID: string;
+  HouseName: string;
 };

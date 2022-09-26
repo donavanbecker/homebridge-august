@@ -1,7 +1,6 @@
 # Add 'branding' to any file changes within 'august' folder
 branding:
   - august/*
-  - honeywell/*
 
 # Add 'enhancement' label to any change to index.js file
 enhancement:

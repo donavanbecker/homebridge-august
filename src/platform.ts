@@ -1,8 +1,7 @@
 import August from 'august-api';
 import { API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, Service } from 'homebridge';
-import { LeakSensor } from './devices/leaksensors';
-import { Thermostats } from './devices/thermostats';
-import * as settings from './settings';
+import { LockManagement } from './devices/lock';
+import { AugustPlatformConfig, PLUGIN_NAME, PLATFORM_NAME, device } from './settings';
 
 /**
  * HomebridgePlatform
@@ -16,17 +15,12 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
 
-  locations?: any;
-  firmware!: settings.accessoryAttribute['softwareRevision'];
-  sensorAccessory!: settings.sensorAccessory;
   version = require('../package.json').version; // eslint-disable-line @typescript-eslint/no-var-requires
-
-  public sensorData = [];
   debugMode!: boolean;
-  action!: string;
   platformLogging!: string;
+  august: August;
 
-  constructor(public readonly log: Logger, public readonly config: settings.AugustPlatformConfig, public readonly api: API) {
+  constructor(public readonly log: Logger, public readonly config: AugustPlatformConfig, public readonly api: API) {
     this.logs();
     this.debugLog(`Finished initializing platform: ${this.config.name}`);
     // only load if configured
@@ -114,46 +108,11 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.warnLog(`Platform Config: ${JSON.stringify(platformConfig)}`);
     }
 
-    if (this.config.options) {
-      // Device Config
-      if (this.config.options.devices) {
-        for (const deviceConfig of this.config.options.devices!) {
-          if (!deviceConfig.hide_device && !deviceConfig.deviceClass) {
-            throw new Error('The devices config section is missing the "Device Type" in the config, Check Your Conifg.');
-          }
-          if (!deviceConfig.deviceID) {
-            throw new Error('The devices config section is missing the "Device ID" in the config, Check Your Conifg.');
-          }
-        }
-      }
-    }
-
-    if (this.config.options!.refreshRate! < 30) {
-      throw new Error('Refresh Rate must be above 30 seconds.');
-    }
-
-    if (this.config.disablePlugin) {
-      this.errorLog('Plugin is disabled.');
-    }
-
-    if (!this.config.options.refreshRate && !this.config.disablePlugin) {
-      // default 120 seconds (2 minutes)
-      this.config.options!.refreshRate! = 120;
-      if (this.platformLogging?.includes('debug')) {
-        this.warnLog('Using Default Refresh Rate of 2 Minutes.');
-      }
-    }
-
-    if (!this.config.options.pushRate && !this.config.disablePlugin) {
-      // default 100 milliseconds
-      this.config.options!.pushRate! = 0.1;
-      if (this.platformLogging?.includes('debug')) {
-        this.warnLog('Using Default Push Rate.');
-      }
-    }
-
     if (!this.config.credentials) {
       throw new Error('Missing Credentials');
+    }
+    if (!this.config.credentials.validateCode) {
+      this.warnLog(`Platform Config: ${JSON.stringify(platformConfig)}`);
     }
     if (!this.config.credentials.augustId) {
       throw new Error('Missing August ID (E-mail/Phone Number');
@@ -168,37 +127,37 @@ export class AugustPlatform implements DynamicPlatformPlugin {
    * Accessories are registered by either their DeviceClass, DeviceModel, or DeviceID
    */
   private async discoverDevices() {
-    const august = new August({
-      installId: 'uniqueId', // Can be anything, but save it for future use on this account
-      augustId: 'yourEmailOrPhone', // Phone must be formatted +[countrycode][number]
-      password: 'yourPassword',
+    const uuid = this.api.hap.uuid.generate(`${this.config.credentials?.augustId}`);
+    this.august = new August({
+      installId: uuid,
+      augustId: this.config.credentials?.augustId,
+      password: this.config.credentials?.password,
     });
-    this.warnLog(august);
-
-  }
-
-  private async deviceClass(device: settings.device & settings.devicesConfig, location: any, locationId: any) {
-    switch (device.deviceClass) {
-      case 'LeakDetector':
-        this.debugLog(`Discovered ${device.userDefinedDeviceName} ${device.deviceClass} @ ${location.name}`);
-        this.Leak(device, locationId);
-        break;
-      case 'Thermostat':
-        this.debugLog(`Discovered ${device.userDefinedDeviceName} ${device.deviceClass} (${device.deviceModel}) @ ${location.name}`);
-        await this.createThermostat(location, device, locationId);
-        break;
-      default:
-        this.infoLog(`Device: ${device.userDefinedDeviceName} with Device Class: ${device.deviceClass} is currently not supported.`);
-        this.infoLog('Submit Feature Requests Here: https://git.io/JURLY');
+    this.warnLog(this.august);
+    // If this is the first time you're using this installId, you need to authorize and validate:
+    if (!this.config.credentials?.validateCode) {
+      this.august.authorize();
+    } else {
+      // A 6-digit code will be sent to your email or phone (depending on what you used for your augustId). Send the code back:
+      this.august.validate(this.config.credentials.validateCode); // Example code
     }
+
+    // Example
+    const myLocks = await this.august.locks();
+    this.warnLog(myLocks);
+
+    myLocks.forEach(device => {
+      const lockId = Object.keys(myLocks)[0];
+      this.august.lock(lockId);
+      this.warnLog(lockId);
+      this.warnLog(device);
+      this.debugLog(`Discovered ${device.LockName} (${lockId}) ${device.UserType} ${device.macAddress} ${device.macAddress} `
+      + `@ ${device.HouseName} (${device.HouseID})`);
+      this.createLock(device, uuid);
+    });
   }
 
-  private async createThermostat(
-    location: settings.location,
-    device: settings.device & settings.devicesConfig,
-    locationId: settings.location['locationID'],
-  ) {
-    const uuid = this.api.hap.uuid.generate(`${device.deviceID}-${device.deviceClass}`);
+  private async createLock(device: device, uuid) {
 
     // see if an accessory with the same uuid has already been registered and restored from
     // the cached devices we stored in the `configureAccessory` method above
@@ -206,104 +165,47 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
     if (existingAccessory) {
       // the accessory already exists
-      if (!device.hide_device && !this.config.disablePlugin) {
-        this.infoLog(`Restoring existing accessory from cache: ${existingAccessory.displayName} DeviceID: ${device.deviceID}`);
+      if (!this.config.disablePlugin) {
+        this.infoLog(`Restoring existing accessory from cache: ${existingAccessory.displayName} DeviceID: ${device.lockId}`);
 
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-        existingAccessory.displayName = device.userDefinedDeviceName;
+        existingAccessory.displayName = device.lockDetails.LockName;
         existingAccessory.context.firmwareRevision = this.version;
         existingAccessory.context.device = device;
-        existingAccessory.context.deviceID = device.deviceID;
-        existingAccessory.context.model = device.deviceModel;
+        existingAccessory.context.deviceID = device.lockId;
+        //existingAccessory.context.model = device.deviceModel;
         this.api.updatePlatformAccessories([existingAccessory]);
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
-        new Thermostats(this, existingAccessory, locationId, device);
-        this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${existingAccessory.UUID})`);
+        new LockManagement(this, existingAccessory, device);
+        this.debugLog(`${device.lockDetails.LockName} (${device.lockId}) uuid: ${existingAccessory.UUID}`);
       } else {
         this.unregisterPlatformAccessories(existingAccessory);
       }
-    } else if (!device.hide_device && !this.config.disablePlugin) {
+    } else if (!this.config.disablePlugin) {
       // the accessory does not yet exist, so we need to create it
-      this.infoLog(`Adding new accessory: ${device.userDefinedDeviceName} ${device.deviceClass} Device ID: ${device.deviceID}`);
+      this.infoLog(`Adding new accessory: ${device.lockDetails.LockName} Lock ID: ${device.lockId}`);
 
       // create a new accessory
-      const accessory = new this.api.platformAccessory(device.userDefinedDeviceName, uuid);
+      const accessory = new this.api.platformAccessory(device.lockDetails.LockName, uuid);
 
       // store a copy of the device object in the `accessory.context`
       // the `context` property can be used to store any data about the accessory you may need
       accessory.context.firmwareRevision = this.version;
       accessory.context.device = device;
-      accessory.context.deviceID = device.deviceID;
-      accessory.context.model = device.deviceModel;
+      accessory.context.deviceID = device.lockId;
+      //accessory.context.model = device.deviceModel;
       // create the accessory handler for the newly create accessory
       // this is imported from `platformAccessory.ts`
-      new Thermostats(this, accessory, locationId, device);
-      this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${accessory.UUID})`);
+      new LockManagement(this, accessory, device);
+      this.debugLog(`${device.lockDetails.LockName} (${device.lockId}) uuid:  ${accessory.UUID}`);
 
       // link the accessory to your platform
-      this.api.registerPlatformAccessories(settings.PLUGIN_NAME, settings.PLATFORM_NAME, [accessory]);
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       this.accessories.push(accessory);
     } else {
       if (this.platformLogging?.includes('debug')) {
-        this.errorLog(`Unable to Register new device: ${device.userDefinedDeviceName} ${device.deviceModel} ` + `DeviceID: ${device.deviceID}`);
-        this.errorLog('Check Config to see if DeviceID is being Hidden.');
-      }
-    }
-  }
-
-  private Leak(device: settings.device & settings.devicesConfig, locationId: settings.location['locationID']) {
-    const uuid = this.api.hap.uuid.generate(`${device.deviceID}-${device.deviceClass}`);
-
-    // see if an accessory with the same uuid has already been registered and restored from
-    // the cached devices we stored in the `configureAccessory` method above
-    const existingAccessory = this.accessories.find((accessory) => accessory.UUID === uuid);
-
-    if (existingAccessory) {
-      // the accessory already exists
-      if (!device.hide_device && !this.config.disablePlugin) {
-        this.infoLog(`Restoring existing accessory from cache: ${existingAccessory.displayName} DeviceID: ${device.deviceID}`);
-
-        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-        existingAccessory.displayName = device.userDefinedDeviceName;
-        existingAccessory.context.deviceID = device.deviceID;
-        existingAccessory.context.model = device.deviceClass;
-        existingAccessory.context.firmwareRevision = this.version;
-        this.api.updatePlatformAccessories([existingAccessory]);
-
-        // create the accessory handler for the restored accessory
-        // this is imported from `platformAccessory.ts`
-        new LeakSensor(this, existingAccessory, locationId, device);
-        this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${existingAccessory.UUID})`);
-      } else {
-        this.unregisterPlatformAccessories(existingAccessory);
-      }
-    } else if (!device.hide_device && !this.config.disablePlugin) {
-      // the accessory does not yet exist, so we need to create it
-      this.infoLog(`Adding new accessory: ${device.userDefinedDeviceName} ${device.deviceClass} Device ID: ${device.deviceID}`);
-
-      // create a new accessory
-      const accessory = new this.api.platformAccessory(device.userDefinedDeviceName, uuid);
-
-      // store a copy of the device object in the `accessory.context`
-      // the `context` property can be used to store any data about the accessory you may need
-      accessory.context.device = device;
-      accessory.context.deviceID = device.deviceID;
-      accessory.context.model = device.deviceClass;
-      accessory.context.firmwareRevision = this.version;
-
-      // accessory.context.firmwareRevision = findaccessories.accessoryAttribute.softwareRevision;
-      // create the accessory handler for the newly create accessory
-      // this is imported from `/Sensors/leakSensors.ts`
-      new LeakSensor(this, accessory, locationId, device);
-      this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${accessory.UUID})`);
-
-      // link the accessory to your platform
-      this.api.registerPlatformAccessories(settings.PLUGIN_NAME, settings.PLATFORM_NAME, [accessory]);
-      this.accessories.push(accessory);
-    } else {
-      if (this.platformLogging?.includes('debug')) {
-        this.errorLog(`Unable to Register new device: ${device.userDefinedDeviceName} ${device.deviceType} ` + ` DeviceID: ${device.deviceID}`);
+        this.errorLog(`Unable to Register new device: ${device.lockDetails.LockName} ${device.lockId} Lock ID: ${device.lockId}`);
         this.errorLog('Check Config to see if DeviceID is being Hidden.');
       }
     }
@@ -311,11 +213,11 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
   public unregisterPlatformAccessories(existingAccessory: PlatformAccessory) {
     // remove platform accessories when no longer present
-    this.api.unregisterPlatformAccessories(settings.PLUGIN_NAME, settings.PLATFORM_NAME, [existingAccessory]);
+    this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
     this.warnLog(`Removing existing accessory from cache: ${existingAccessory.displayName}`);
   }
 
-  public locationinfo(location: settings.location) {
+  public locationinfo(location) {
     if (this.platformLogging?.includes('debug')) {
       if (location) {
         this.warnLog(JSON.stringify(location));
