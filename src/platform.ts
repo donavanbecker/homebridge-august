@@ -127,34 +127,38 @@ export class AugustPlatform implements DynamicPlatformPlugin {
    * Accessories are registered by either their DeviceClass, DeviceModel, or DeviceID
    */
   private async discoverDevices() {
-    const uuid = this.api.hap.uuid.generate(`${this.config.credentials?.augustId}`);
-    this.august = new August({
-      installId: uuid,
-      augustId: this.config.credentials?.augustId,
-      password: this.config.credentials?.password,
-    });
-    this.warnLog(this.august);
-    // If this is the first time you're using this installId, you need to authorize and validate:
-    if (!this.config.credentials?.validateCode) {
-      this.august.authorize();
-    } else {
+    try {
+      const uuid = this.api.hap.uuid.generate(`${this.config.credentials?.augustId}`);
+      this.august = new August({
+        installId: uuid,
+        augustId: this.config.credentials?.augustId,
+        password: this.config.credentials?.password,
+      });
+      this.warnLog(JSON.stringify(this.august));
+      // If this is the first time you're using this installId, you need to authorize and validate:
+      if (!this.config.credentials?.validateCode) {
+        this.august.authorize();
+      } else {
       // A 6-digit code will be sent to your email or phone (depending on what you used for your augustId). Send the code back:
-      this.august.validate(this.config.credentials.validateCode); // Example code
-    }
+        this.august.validate(this.config.credentials.validateCode); // Example code
+      }
 
-    // Example
-    const myLocks = await this.august.locks();
-    this.warnLog(myLocks);
+      // Example
+      const myLocks = await this.august.locks();
+      this.warnLog(JSON.stringify(myLocks));
 
-    myLocks.forEach(device => {
-      const lockId = Object.keys(myLocks)[0];
-      this.august.lock(lockId);
-      this.warnLog(lockId);
-      this.warnLog(device);
-      this.debugLog(`Discovered ${device.LockName} (${lockId}) ${device.UserType} ${device.macAddress} ${device.macAddress} `
+      for(const device of myLocks) {
+        const lockId = Object.keys(myLocks)[0];
+        this.august.lock(lockId);
+        this.warnLog(JSON.stringify(lockId));
+        this.warnLog(JSON.stringify(device));
+        this.debugLog(`Discovered ${device.LockName} (${lockId}) ${device.UserType} ${device.macAddress} ${device.macAddress} `
       + `@ ${device.HouseName} (${device.HouseID})`);
-      this.createLock(device, uuid);
-    });
+        this.createLock(device, uuid);
+      }
+    } catch (e: any) {
+      this.errorLog(e);
+    }
   }
 
   private async createLock(device: device, uuid) {

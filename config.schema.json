@@ -27,13 +27,20 @@
               "type": "password"
             }
           },
+          "validateCode": {
+            "title": "August  Verification Code",
+            "type": "string",
+            "x-schema-form": {
+              "type": "password"
+            }
+          },
           "notice": {
             "title": "Notice",
             "type": "string",
             "default": "Keep your tokens a secret!"
           }
         },
-        "required": ["augustId", "password", "notice"]
+        "required": ["augustId", "password", "validateCode", "notice"]
       }
     },
     "required": ["name", "credentials"]
@@ -46,7 +53,8 @@
       "expanded": false,
       "items": [
         "credentials.augustId",
-        "credentials.password"
+        "credentials.password",
+        "credentials.validateCode"
       ]
     }
   ]
