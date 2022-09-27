@@ -134,7 +134,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         augustId: this.config.credentials?.augustId,
         password: this.config.credentials?.password,
       });
-      this.warnLog(JSON.stringify(this.august));
+      this.debugLog(JSON.stringify(this.august));
       // If this is the first time you're using this installId, you need to authorize and validate:
       if (!this.config.credentials?.validateCode) {
         this.august.authorize();
