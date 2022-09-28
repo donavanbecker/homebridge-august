@@ -2,6 +2,7 @@ import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { interval, Subject } from 'rxjs';
 import { debounceTime, skipWhile, take, tap } from 'rxjs/operators';
 import { AugustPlatform } from '../platform';
+import { device } from '../settings';
 
 /**
  * Platform Accessory
@@ -10,7 +11,15 @@ import { AugustPlatform } from '../platform';
  */
 export class LockManagement {
   service!: Service;
-  fanService?: Service;
+  batteryService: Service;
+
+
+  // CharacteristicValue
+  LockTargetState!: CharacteristicValue;
+  LockCurrentState!: CharacteristicValue;
+
+  // Others
+  lockStatus: any;
 
   // Config
   deviceLogging!: string;
@@ -19,9 +28,8 @@ export class LockManagement {
   // Lock Updates
   lockUpdateInProgress: boolean;
   doLockUpdate: any;
-  LockCurrentState;
 
-  constructor(private readonly platform: AugustPlatform, private accessory: PlatformAccessory, public device) {
+  constructor(private readonly platform: AugustPlatform, private accessory: PlatformAccessory, public device: device) {
     this.logs(device);
     this.refreshRate(device);
     this.config(device);
@@ -35,13 +43,13 @@ export class LockManagement {
     accessory
       .getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'August')
-      .setCharacteristic(this.platform.Characteristic.Model, device.deviceModel)
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, device.deviceID)
+      .setCharacteristic(this.platform.Characteristic.Model, accessory.context.model)
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.serialnumber)
       .setCharacteristic(this.platform.Characteristic.FirmwareRevision, accessory.context.firmwareRevision)
       .getCharacteristic(this.platform.Characteristic.FirmwareRevision)
       .updateValue(accessory.context.firmwareRevision);
 
-    //Thermostat Service
+    //LockManagement Service
     (this.service =
       this.accessory.getService(this.platform.Service.LockManagement) || this.accessory.addService(this.platform.Service.LockManagement)),
     accessory.displayName;
@@ -53,7 +61,14 @@ export class LockManagement {
     //Initial Device Parse
     this.parseStatus();
 
-    this.service.getCharacteristic(this.platform.Characteristic.LockCurrentState).onSet(this.setLockCurrentState.bind(this));
+    this.service.getCharacteristic(this.platform.Characteristic.LockTargetState).onSet(this.setLockTargetState.bind(this));
+    this.service.getCharacteristic(this.platform.Characteristic.LockCurrentState).onGet(() => {
+      return this.LockCurrentState!;
+    });
+
+    (this.batteryService =
+      this.accessory.getService(this.platform.Service.Battery) || this.accessory.addService(this.platform.Service.Battery)),
+    `${accessory.displayName} Battery`;
 
     // Retrieve initial values and updateHomekit
     this.refreshStatus();
@@ -96,6 +111,15 @@ export class LockManagement {
    * Parse the device status from the August api
    */
   async parseStatus(): Promise<void> {
+    /*if (this.lockStatus.retryCount) {
+      this.LockCurrentState = this.platform.Characteristic.LockCurrentState.JAMMED;
+    } else if (this.lockStatus.state.locked) {
+      this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
+    } else if (this.lockStatus.state.unlocked) {
+      this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNSECURED;
+    } else {*/
+    this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNKNOWN;
+    //}
     this.debugLog(`Lock: ${this.accessory.displayName} parseStatus`);
   }
 
@@ -105,20 +129,9 @@ export class LockManagement {
   async refreshStatus(): Promise<void> {
     try {
       const august = this.platform.august;
-      const lockStatus = await august.status('7EDFA965E0AE0CE19772AFA435364295');
-      this.infoLog(lockStatus);
-      // {
-      //   lockID: '7EDFA965E0AE0CE19772AFA435364295'
-      //   status: 'kAugLockState_Locked',
-      //   doorState: 'kAugDoorState_Closed',
-      //   state: {
-      //     locked: true,
-      //     unlocked: false,
-      //     closed: true,
-      //     open: false,
-      //   }
-      //   ...
-      // }
+      const lockStatus = await august.status(this.device.lockId);
+      this.debugLog(JSON.stringify(lockStatus));
+      this.lockStatus = lockStatus;
       this.debugLog(`Lock: ${this.accessory.displayName} device: ${JSON.stringify(this.device)}`);
       this.parseStatus();
       this.updateHomeKitCharacteristics();
@@ -143,17 +156,17 @@ export class LockManagement {
    * Updates the status for each of the HomeKit Characteristics
    */
   async updateHomeKitCharacteristics(): Promise<void> {
-    if (this.LockCurrentState === undefined) {
-      this.debugLog(`Lock: ${this.accessory.displayName} LockCurrentState: ${this.LockCurrentState}`);
+    if (this.LockTargetState === undefined) {
+      this.debugLog(`Lock: ${this.accessory.displayName} LockTargetState: ${this.LockTargetState}`);
     } else {
-      this.service.updateCharacteristic(this.platform.Characteristic.LockCurrentState, this.LockCurrentState);
-      this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic LockCurrentState: ${this.LockCurrentState}`);
+      this.service.updateCharacteristic(this.platform.Characteristic.LockTargetState, this.LockTargetState);
+      this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic LockTargetState: ${this.LockTargetState}`);
     }
   }
 
-  async setLockCurrentState(value: CharacteristicValue): Promise<void> {
-    this.debugLog(`Lock: ${this.accessory.displayName} Set LockCurrentState: ${value}`);
-    this.LockCurrentState = value;
+  async setLockTargetState(value: CharacteristicValue): Promise<void> {
+    this.debugLog(`Lock: ${this.accessory.displayName} Set LockTargetState: ${value}`);
+    this.LockTargetState = value;
     this.doLockUpdate.next();
   }
 

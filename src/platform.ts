@@ -145,24 +145,22 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
       // Example
       const myLocks = await this.august.locks();
-      this.warnLog(JSON.stringify(myLocks));
-
-      for(const device of myLocks) {
-        const lockId = Object.keys(myLocks)[0];
-        this.august.lock(lockId);
-        this.warnLog(JSON.stringify(lockId));
-        this.warnLog(JSON.stringify(device));
-        this.debugLog(`Discovered ${device.LockName} (${lockId}) ${device.UserType} ${device.macAddress} ${device.macAddress} `
-      + `@ ${device.HouseName} (${device.HouseID})`);
-        this.createLock(device, uuid);
+      this.debugLog(JSON.stringify(myLocks));
+      const lockIds = Object.keys(myLocks);
+      this.debugLog(JSON.stringify(lockIds));
+      for (const lockId of lockIds) {
+        this.debugLog(JSON.stringify(lockId));
+        const device = await this.august.details(lockId);
+        this.debugLog(JSON.stringify(device));
+        this.createLock(device);
       }
     } catch (e: any) {
       this.errorLog(e);
     }
   }
 
-  private async createLock(device: device, uuid) {
-
+  private async createLock(device: device) {
+    const uuid = this.api.hap.uuid.generate(device.lockId);
     // see if an accessory with the same uuid has already been registered and restored from
     // the cached devices we stored in the `configureAccessory` method above
     const existingAccessory = this.accessories.find((accessory) => accessory.UUID === uuid);
@@ -170,55 +168,58 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     if (existingAccessory) {
       // the accessory already exists
       if (!this.config.disablePlugin) {
-        this.infoLog(`Restoring existing accessory from cache: ${existingAccessory.displayName} DeviceID: ${device.lockId}`);
+        this.infoLog(`Restoring existing accessory from cache: ${device.LockName} DeviceID: ${device.lockId}`);
 
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-        existingAccessory.displayName = device.lockDetails.LockName;
-        existingAccessory.context.firmwareRevision = this.version;
         existingAccessory.context.device = device;
+        existingAccessory.displayName = device.LockName;
+        existingAccessory.context.firmwareRevision = device.currentFirmwareVersion;
+        existingAccessory.context.model = device.skuNumber;
+        existingAccessory.context.serialnumber = device.SerialNumber;
         existingAccessory.context.deviceID = device.lockId;
-        //existingAccessory.context.model = device.deviceModel;
         this.api.updatePlatformAccessories([existingAccessory]);
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
         new LockManagement(this, existingAccessory, device);
-        this.debugLog(`${device.lockDetails.LockName} (${device.lockId}) uuid: ${existingAccessory.UUID}`);
+        this.debugLog(`${device.LockName} (${device.lockId}) uuid: ${existingAccessory.UUID}`);
       } else {
-        this.unregisterPlatformAccessories(existingAccessory);
+        this.unregisterPlatformAccessories(existingAccessory, device);
       }
     } else if (!this.config.disablePlugin) {
       // the accessory does not yet exist, so we need to create it
-      this.infoLog(`Adding new accessory: ${device.lockDetails.LockName} Lock ID: ${device.lockId}`);
+      this.infoLog(`Adding new accessory: ${device.LockName} Lock ID: ${device.lockId}`);
 
       // create a new accessory
-      const accessory = new this.api.platformAccessory(device.lockDetails.LockName, uuid);
+      const accessory = new this.api.platformAccessory(device.LockName, uuid);
 
       // store a copy of the device object in the `accessory.context`
       // the `context` property can be used to store any data about the accessory you may need
-      accessory.context.firmwareRevision = this.version;
       accessory.context.device = device;
+      accessory.displayName = device.LockName;
+      accessory.context.firmwareRevision = device.currentFirmwareVersion;
+      accessory.context.model = device.skuNumber;
+      accessory.context.serialnumber = device.SerialNumber;
       accessory.context.deviceID = device.lockId;
-      //accessory.context.model = device.deviceModel;
       // create the accessory handler for the newly create accessory
       // this is imported from `platformAccessory.ts`
       new LockManagement(this, accessory, device);
-      this.debugLog(`${device.lockDetails.LockName} (${device.lockId}) uuid:  ${accessory.UUID}`);
+      this.debugLog(`${device.LockName} (${device.lockId}) uuid:  ${accessory.UUID}`);
 
       // link the accessory to your platform
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       this.accessories.push(accessory);
     } else {
       if (this.platformLogging?.includes('debug')) {
-        this.errorLog(`Unable to Register new device: ${device.lockDetails.LockName} ${device.lockId} Lock ID: ${device.lockId}`);
+        this.errorLog(`Unable to Register new device: ${device.LockName} Lock ID: ${device.lockId}`);
         this.errorLog('Check Config to see if DeviceID is being Hidden.');
       }
     }
   }
 
-  public unregisterPlatformAccessories(existingAccessory: PlatformAccessory) {
+  public unregisterPlatformAccessories(existingAccessory: PlatformAccessory, device: device) {
     // remove platform accessories when no longer present
     this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
-    this.warnLog(`Removing existing accessory from cache: ${existingAccessory.displayName}`);
+    this.warnLog(`Removing existing accessory from cache: ${device.LockName}`);
   }
 
   public locationinfo(location) {
