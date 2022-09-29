@@ -26,8 +26,10 @@ export class LockMechanism {
   lockStatus: any;
   retryCount: any;
   state: any;
-  locked: any;
-  unlocked: any;
+  locked!: boolean;
+  unlocked!: boolean;
+  open!: boolean;
+  closed!: boolean;
 
   // Lock Details
   lockDetails: any;
@@ -66,9 +68,9 @@ export class LockMechanism {
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'August')
       .setCharacteristic(this.platform.Characteristic.Model, accessory.context.model)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.serialnumber)
-      .setCharacteristic(this.platform.Characteristic.FirmwareRevision, accessory.context.firmwareRevision)
+      .setCharacteristic(this.platform.Characteristic.FirmwareRevision, accessory.context.currentFirmwareVersion)
       .getCharacteristic(this.platform.Characteristic.FirmwareRevision)
-      .updateValue(accessory.context.firmwareRevision);
+      .updateValue(accessory.context.currentFirmwareVersion);
 
     // Lock Mechanism Service
     (this.lockService =
@@ -86,12 +88,12 @@ export class LockMechanism {
     this.lockService.getCharacteristic(this.platform.Characteristic.LockTargetState).onSet(this.setLockTargetState.bind(this));
 
     // Contact Sensor Service
-    if (device.LockStatus.doorState) {
+    if (device.lock?.hide_contactsensor) {
       this.warnLog(`Lock: ${accessory.displayName} Removing Contact Sensor Service`);
       this.contactSensorService = this.accessory.getService(this.platform.Service.ContactSensor);
       accessory.removeService(this.contactSensorService!);
     } else if (!this.contactSensorService) {
-      this.warnLog(`Lock: ${accessory.displayName} Add Contact Sensor Service`);
+      this.debugLog(`Lock: ${accessory.displayName} Add Contact Sensor Service`);
       (this.contactSensorService =
         this.accessory.getService(this.platform.Service.ContactSensor) || this.accessory.addService(this.platform.Service.ContactSensor)),
       `${accessory.displayName} Contact Sensor`;
@@ -158,30 +160,33 @@ export class LockMechanism {
       this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNKNOWN;
     }
     // Battery
-    this.BatteryLevel = Number(this.battery) * 100;
+    this.BatteryLevel = this.battery.toFixed();
     this.batteryService.getCharacteristic(this.platform.Characteristic.BatteryLevel).updateValue(this.BatteryLevel);
-    if (this.battery < 15) {
+    if (this.BatteryLevel < 15) {
       this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
     } else {
       this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
     }
-    this.debugLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel},` + ` StatusLowBattery: ${this.StatusLowBattery}`);
+    this.errorLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel},` + ` StatusLowBattery: ${this.StatusLowBattery}`);
     // Contact Sensor
-    if (this.doorState === 'open') {
+    if (this.doorState === 'open' && this.open) {
       this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
-      this.debugLog(`Contact Sensor: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-    } else if (this.doorState === 'closed') {
+      this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+    } else if (this.doorState === 'closed' && this.closed) {
       this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
-      this.debugLog(`Contact Sensor: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
     } else {
-      this.debugLog(`Contact Sensor: ${this.accessory.displayName} openState: ${this.doorState}`);
+      this.errorLog(`Lock: ${this.accessory.displayName} doorState: ${this.doorState}, closed: ${this.closed}, open: ${this.open}`);
     }
     // Update Firmware
+    if (this.currentFirmwareVersion !== this.accessory.context.currentFirmwareVersion) {
+      this.warnLog(`Lock: ${this.accessory.displayName} Firmware Version changed to Current Firmware Version: ${this.currentFirmwareVersion}`);
     this.accessory
       .getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.currentFirmwareVersion)
       .getCharacteristic(this.platform.Characteristic.FirmwareRevision)
       .updateValue(this.currentFirmwareVersion);
+    }
   }
 
   /**
@@ -194,19 +199,30 @@ export class LockMechanism {
       // Update Lock Status
       const lockStatus = await august.status(this.device.lockId);
       this.lockStatus = lockStatus;
-      this.retryCount = this.lockStatus.retryCount;
-      this.state = this.lockStatus.state;
-      this.locked = this.lockStatus.state.locked;
-      this.unlocked = this.lockStatus.state.unlocked;
       this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${JSON.stringify(this.lockStatus)}`);
+      this.retryCount = this.lockStatus.retryCount;
+      this.debugLog(`Lock: ${this.accessory.displayName} retryCount (lockStatus): ${this.retryCount}`);
+      this.state = this.lockStatus.state;
+      this.debugLog(`Lock: ${this.accessory.displayName} state (lockStatus): ${JSON.stringify(this.state)}`);
+      this.locked = this.lockStatus.state.locked;
+      this.debugLog(`Lock: ${this.accessory.displayName} locked (lockStatus): ${this.locked}`);
+      this.unlocked = this.lockStatus.state.unlocked;
+      this.debugLog(`Lock: ${this.accessory.displayName} unlocked (lockStatus): ${this.unlocked}`);
+      this.open = this.lockStatus.state.open;
+      this.debugLog(`Lock: ${this.accessory.displayName} open (lockStatus): ${this.open}`);
+      this.closed = this.lockStatus.state.closed;
+      this.debugLog(`Lock: ${this.accessory.displayName} closed (lockStatus): ${this.closed}`);
 
       // Update Lock Details
       const lockDetails = await august.details(this.device.lockId);
       this.lockDetails = lockDetails;
-      this.battery = this.lockDetails.battery;
-      this.doorState = this.lockDetails.doorState;
-      this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
       this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${JSON.stringify(this.lockDetails)}`);
+      this.battery = Number(this.lockDetails.battery) * 100;
+      this.errorLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
+      this.doorState = this.lockDetails.LockStatus.doorState;
+      this.debugLog(`Lock: ${this.accessory.displayName} doorState (lockDetails): ${this.doorState}`);
+      this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
+      this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
 
       // Update HomeKit
       this.parseStatus();
@@ -270,10 +286,10 @@ export class LockMechanism {
     }
     // Contact Sensor
     if (this.ContactSensorState === undefined) {
-      this.debugLog(`Contact Sensor: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
     } else {
       this.contactSensorService?.updateCharacteristic(this.platform.Characteristic.ContactSensorState, this.ContactSensorState);
-      this.debugLog(`Contact Sensor: ${this.accessory.displayName} updateCharacteristic ContactSensorState: ${this.ContactSensorState}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic ContactSensorState: ${this.ContactSensorState}`);
     }
   }
 

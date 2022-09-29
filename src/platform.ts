@@ -109,6 +109,14 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.warnLog(`Platform Config: ${JSON.stringify(platformConfig)}`);
     }
 
+    if (!this.config.options.refreshRate) {
+      // default 300 seconds (5 minutes)
+      this.config.options!.refreshRate! = 300;
+      if (this.platformLogging?.includes('debug')) {
+        this.debugLog('Using Default Refresh Rate (5 minutes).');
+      }
+    }
+
     if (!this.config.credentials) {
       throw new Error('Missing Credentials');
     }
@@ -153,17 +161,17 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       }
       const deviceLists = devices;
       if (!this.config.options?.devices) {
-        this.debugLog(`August Device Config Not Set: ${JSON.stringify(this.config.options?.devices)}`);
+        this.debugLog(`August Platform Config Not Set: ${JSON.stringify(this.config.options?.devices)}`);
         const devices = deviceLists.map((v: any) => v);
         for (const device of devices) {
           if (device.configDeviceName) {
             device.deviceName = device.configDeviceName;
           }
-          this.errorLog(`device: ${JSON.stringify(device)}`);
+          this.debugLog(`device: ${JSON.stringify(device)}`);
           this.createLock(device);
         }
       } else if (this.config.options.devices) {
-        this.warnLog(`August Device Config Set: ${JSON.stringify(this.config.options?.devices)}`);
+        this.warnLog(`August Platform Config Set: ${JSON.stringify(this.config.options?.devices)}`);
         const deviceConfigs = this.config.options?.devices;
 
         const mergeBylockId = (a1: { lockId: string }[], a2: any[]) =>
@@ -176,12 +184,12 @@ export class AugustPlatform implements DynamicPlatformPlugin {
           }));
 
         const devices = mergeBylockId(deviceLists, deviceConfigs);
-        this.debugLog(`August Devices: ${JSON.stringify(devices)}`);
+        this.debugLog(`August Lock(s): ${JSON.stringify(devices)}`);
         for (const device of devices) {
           if (device.configDeviceName) {
             device.deviceName = device.configDeviceName;
           }
-          this.errorLog(`device: ${JSON.stringify(device)}`);
+          this.debugLog(`device: ${JSON.stringify(device)}`);
           this.createLock(device);
         }
       } else {
@@ -201,12 +209,13 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     if (existingAccessory) {
       // the accessory already exists
       if (this.registerDevice(device)) {
-        this.infoLog(`Restoring existing accessory from cache: ${device.LockName} DeviceID: ${device.lockId}`);
+        this.infoLog(`Restoring existing accessory from cache: ${device.LockName} Lock ID: ${device.lockId}`);
 
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         existingAccessory.context.device = device;
         existingAccessory.displayName = device.LockName;
-        existingAccessory.context.firmwareRevision = device.currentFirmwareVersion;
+        existingAccessory.context.currentFirmwareVersion = device.currentFirmwareVersion;
+        this.errorLog(device.currentFirmwareVersion);
         existingAccessory.context.model = device.skuNumber;
         existingAccessory.context.serialnumber = device.SerialNumber;
         existingAccessory.context.deviceID = device.lockId;
@@ -229,7 +238,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       // the `context` property can be used to store any data about the accessory you may need
       accessory.context.device = device;
       accessory.displayName = device.LockName;
-      accessory.context.firmwareRevision = device.currentFirmwareVersion;
+      accessory.context.currentFirmwareVersion = device.currentFirmwareVersion;
       accessory.context.model = device.skuNumber;
       accessory.context.serialnumber = device.SerialNumber;
       accessory.context.deviceID = device.lockId;
