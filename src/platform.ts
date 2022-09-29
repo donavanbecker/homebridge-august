@@ -215,7 +215,6 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         existingAccessory.context.device = device;
         existingAccessory.displayName = device.LockName;
         existingAccessory.context.currentFirmwareVersion = device.currentFirmwareVersion;
-        this.errorLog(device.currentFirmwareVersion);
         existingAccessory.context.model = device.skuNumber;
         existingAccessory.context.serialnumber = device.SerialNumber;
         existingAccessory.context.deviceID = device.lockId;

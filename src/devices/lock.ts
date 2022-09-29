@@ -167,7 +167,7 @@ export class LockMechanism {
     } else {
       this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
     }
-    this.errorLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel},` + ` StatusLowBattery: ${this.StatusLowBattery}`);
+    this.debugLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel},` + ` StatusLowBattery: ${this.StatusLowBattery}`);
     // Contact Sensor
     if (this.doorState === 'open' && this.open) {
       this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
@@ -218,7 +218,7 @@ export class LockMechanism {
       this.lockDetails = lockDetails;
       this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${JSON.stringify(this.lockDetails)}`);
       this.battery = Number(this.lockDetails.battery) * 100;
-      this.errorLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
       this.doorState = this.lockDetails.LockStatus.doorState;
       this.debugLog(`Lock: ${this.accessory.displayName} doorState (lockDetails): ${this.doorState}`);
       this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
