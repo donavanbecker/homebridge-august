@@ -1,6 +1,6 @@
 <span align="center">
 
-<a href="https://github.com/homebridge/verified/blob/latest/verified-plugins.json"><img alt="homebridge-verified" src="https://raw.githubusercontent.com/donavanbecker/homebridge-august/latest/august/Homebridge_x_August.svg?sanitize=true" width="350px"></a>
+<a href="https://github.com/homebridge/verified/blob/master/verified-plugins.json"><img alt="homebridge-verified" src="https://raw.githubusercontent.com/donavanbecker/homebridge-august/latest/august/Homebridge_x_August.svg?sanitize=true" width="350px"></a>
 
 # Homebridge August
 
@@ -23,8 +23,17 @@ plugin allows you to access your <a href="https://august.com">August</a> & <a hr
 
 ## Configuration
 
-1. Login
+1. Input your August E-mail/Phone Number into the August Account Info.
+
+2. August Validate code will be sent after restarting Homebridge.
+
+3. Input your Validate Code into the August Account Info.
+
+4. Finally Restart Homebridge.
 
 ## Supported August Devices
 
-- ?
+- August WiFi Smart Lock (Gen 4)
+- Yale Assure Lock 2 (YDR410)
+- Yale Assure Lock SL (YDR256)
+
