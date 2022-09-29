@@ -1,8 +1,140 @@
 [
-  {"status":"kAugLockState_Unlocked","info":{"action":"status","startTime":"2022-09-28T11:34:30.708Z","context":{"transactionID":"h9P-VA5Yol","startDate":"2022-09-28T11:34:30.702Z","retryCount":1},"lockType":"lock_version_5","serialNumber":"L5WIE0005K","rssi":-1,"wlanRSSI":-50,"wlanSNR":-1,"duration":2631,"lockID":"C24F3AD30AD845059E1B4A01D6F404BA","bridgeID":"5f3f51d0a89e1600a3a78115","serial":"L5WIE0005K"},"doorState":"kAugDoorState_Closed","retryCount":1,"totalTime":2649,"resultsFromOperationCache":false,"state":{"locked":false,"unlocked":true,"open":false,"closed":true},"lockID":"C24F3AD30AD845059E1B4A01D6F404BA"}
-,{"status":"kAugLockState_Unlocked","info":{"action":"status","startTime":"2022-09-28T11:34:30.708Z","context":{"transactionID":"h9P-VA5Yol","startDate":"2022-09-28T11:34:30.702Z","retryCount":1},"lockType":"lock_version_5","serialNumber":"L5WIE0005K","rssi":-1,"wlanRSSI":-50,"wlanSNR":-1,"duration":2631,"lockID":"C24F3AD30AD845059E1B4A01D6F404BA","bridgeID":"5f3f51d0a89e1600a3a78115","serial":"L5WIE0005K"},"doorState":"kAugDoorState_Closed","retryCount":1,"totalTime":2639,"resultsFromOperationCache":true,"state":{"locked":false,"unlocked":true,"open":false,"closed":true},"lockID":"C24F3AD30AD845059E1B4A01D6F404BA"}
-,{"status":"kAugLockState_Locked","info":{"action":"status","startTime":"2022-09-28T11:34:31.158Z","context":{"transactionID":"O59ar33L7","startDate":"2022-09-28T11:34:31.156Z","retryCount":1},"lockType":"lock_version_1001","serialNumber":"M1FXU002TT","rssi":-75,"wlanRSSI":-45,"wlanSNR":54,"duration":4719,"lockID":"C9226A57C9B5464B999865229D83223D","bridgeID":"62262fe07269d82f66307767","serial":"C4WXG0031H"},"doorState":"kAugDoorState_Closed","retryCount":1,"totalTime":4763,"resultsFromOperationCache":false,"state":{"locked":true,"unlocked":false,"open":false,"closed":true},"lockID":"C9226A57C9B5464B999865229D83223D"}
-,{"status":"kAugLockState_Locked","info":{"action":"status","startTime":"2022-09-28T11:34:31.158Z","context":{"transactionID":"O59ar33L7","startDate":"2022-09-28T11:34:31.156Z","retryCount":1},"lockType":"lock_version_1001","serialNumber":"M1FXU002TT","rssi":-75,"wlanRSSI":-45,"wlanSNR":54,"duration":4719,"lockID":"C9226A57C9B5464B999865229D83223D","bridgeID":"62262fe07269d82f66307767","serial":"C4WXG0031H"},"doorState":"kAugDoorState_Closed","retryCount":1,"totalTime":4749,"resultsFromOperationCache":true,"state":{"locked":true,"unlocked":false,"open":false,"closed":true},"lockID":"C9226A57C9B5464B999865229D83223D"}
-,{"status":"kAugLockState_Locked","info":{"action":"status","startTime":"2022-09-28T11:34:30.235Z","context":{"transactionID":"0AjwoUjYwR","startDate":"2022-09-28T11:34:30.228Z","retryCount":1},"lockType":"lock_version_15","serialNumber":"LFI4Y001RF","rssi":-88,"wlanRSSI":-62,"wlanSNR":-1,"duration":6569,"lockID":"306F097F264F41E6B000E8568FE1F8A5","bridgeID":"63308740d98cdb9f89b59487","serial":"C8W72000FU"},"doorState":"kAugDoorState_Closed","retryCount":1,"totalTime":6592,"resultsFromOperationCache":false,"state":{"locked":true,"unlocked":false,"open":false,"closed":true},"lockID":"306F097F264F41E6B000E8568FE1F8A5"}
-,{"status":"kAugLockState_Locked","info":{"action":"status","startTime":"2022-09-28T11:34:30.235Z","context":{"transactionID":"0AjwoUjYwR","startDate":"2022-09-28T11:34:30.228Z","retryCount":1},"lockType":"lock_version_15","serialNumber":"LFI4Y001RF","rssi":-88,"wlanRSSI":-62,"wlanSNR":-1,"duration":6569,"lockID":"306F097F264F41E6B000E8568FE1F8A5","bridgeID":"63308740d98cdb9f89b59487","serial":"C8W72000FU"},"doorState":"kAugDoorState_Closed","retryCount":1,"totalTime":6586,"resultsFromOperationCache":true,"state":{"locked":true,"unlocked":false,"open":false,"closed":true},"lockID":"306F097F264F41E6B000E8568FE1F8A5"}
+  {
+    "status": "kAugLockState_Unlocked",
+    "info": {
+      "action": "status",
+      "startTime": "2022-09-28T11:34:30.708Z",
+      "context": { "transactionID": "h9P-VA5Yol", "startDate": "2022-09-28T11:34:30.702Z", "retryCount": 1 },
+      "lockType": "lock_version_5",
+      "serialNumber": "L5WIE0005K",
+      "rssi": -1,
+      "wlanRSSI": -50,
+      "wlanSNR": -1,
+      "duration": 2631,
+      "lockID": "C24F3AD30AD845059E1B4A01D6F404BA",
+      "bridgeID": "5f3f51d0a89e1600a3a78115",
+      "serial": "L5WIE0005K"
+    },
+    "doorState": "kAugDoorState_Closed",
+    "retryCount": 1,
+    "totalTime": 2649,
+    "resultsFromOperationCache": false,
+    "state": { "locked": false, "unlocked": true, "open": false, "closed": true },
+    "lockID": "C24F3AD30AD845059E1B4A01D6F404BA"
+  },
+  {
+    "status": "kAugLockState_Unlocked",
+    "info": {
+      "action": "status",
+      "startTime": "2022-09-28T11:34:30.708Z",
+      "context": { "transactionID": "h9P-VA5Yol", "startDate": "2022-09-28T11:34:30.702Z", "retryCount": 1 },
+      "lockType": "lock_version_5",
+      "serialNumber": "L5WIE0005K",
+      "rssi": -1,
+      "wlanRSSI": -50,
+      "wlanSNR": -1,
+      "duration": 2631,
+      "lockID": "C24F3AD30AD845059E1B4A01D6F404BA",
+      "bridgeID": "5f3f51d0a89e1600a3a78115",
+      "serial": "L5WIE0005K"
+    },
+    "doorState": "kAugDoorState_Closed",
+    "retryCount": 1,
+    "totalTime": 2639,
+    "resultsFromOperationCache": true,
+    "state": { "locked": false, "unlocked": true, "open": false, "closed": true },
+    "lockID": "C24F3AD30AD845059E1B4A01D6F404BA"
+  },
+  {
+    "status": "kAugLockState_Locked",
+    "info": {
+      "action": "status",
+      "startTime": "2022-09-28T11:34:31.158Z",
+      "context": { "transactionID": "O59ar33L7", "startDate": "2022-09-28T11:34:31.156Z", "retryCount": 1 },
+      "lockType": "lock_version_1001",
+      "serialNumber": "M1FXU002TT",
+      "rssi": -75,
+      "wlanRSSI": -45,
+      "wlanSNR": 54,
+      "duration": 4719,
+      "lockID": "C9226A57C9B5464B999865229D83223D",
+      "bridgeID": "62262fe07269d82f66307767",
+      "serial": "C4WXG0031H"
+    },
+    "doorState": "kAugDoorState_Closed",
+    "retryCount": 1,
+    "totalTime": 4763,
+    "resultsFromOperationCache": false,
+    "state": { "locked": true, "unlocked": false, "open": false, "closed": true },
+    "lockID": "C9226A57C9B5464B999865229D83223D"
+  },
+  {
+    "status": "kAugLockState_Locked",
+    "info": {
+      "action": "status",
+      "startTime": "2022-09-28T11:34:31.158Z",
+      "context": { "transactionID": "O59ar33L7", "startDate": "2022-09-28T11:34:31.156Z", "retryCount": 1 },
+      "lockType": "lock_version_1001",
+      "serialNumber": "M1FXU002TT",
+      "rssi": -75,
+      "wlanRSSI": -45,
+      "wlanSNR": 54,
+      "duration": 4719,
+      "lockID": "C9226A57C9B5464B999865229D83223D",
+      "bridgeID": "62262fe07269d82f66307767",
+      "serial": "C4WXG0031H"
+    },
+    "doorState": "kAugDoorState_Closed",
+    "retryCount": 1,
+    "totalTime": 4749,
+    "resultsFromOperationCache": true,
+    "state": { "locked": true, "unlocked": false, "open": false, "closed": true },
+    "lockID": "C9226A57C9B5464B999865229D83223D"
+  },
+  {
+    "status": "kAugLockState_Locked",
+    "info": {
+      "action": "status",
+      "startTime": "2022-09-28T11:34:30.235Z",
+      "context": { "transactionID": "0AjwoUjYwR", "startDate": "2022-09-28T11:34:30.228Z", "retryCount": 1 },
+      "lockType": "lock_version_15",
+      "serialNumber": "LFI4Y001RF",
+      "rssi": -88,
+      "wlanRSSI": -62,
+      "wlanSNR": -1,
+      "duration": 6569,
+      "lockID": "306F097F264F41E6B000E8568FE1F8A5",
+      "bridgeID": "63308740d98cdb9f89b59487",
+      "serial": "C8W72000FU"
+    },
+    "doorState": "kAugDoorState_Closed",
+    "retryCount": 1,
+    "totalTime": 6592,
+    "resultsFromOperationCache": false,
+    "state": { "locked": true, "unlocked": false, "open": false, "closed": true },
+    "lockID": "306F097F264F41E6B000E8568FE1F8A5"
+  },
+  {
+    "status": "kAugLockState_Locked",
+    "info": {
+      "action": "status",
+      "startTime": "2022-09-28T11:34:30.235Z",
+      "context": { "transactionID": "0AjwoUjYwR", "startDate": "2022-09-28T11:34:30.228Z", "retryCount": 1 },
+      "lockType": "lock_version_15",
+      "serialNumber": "LFI4Y001RF",
+      "rssi": -88,
+      "wlanRSSI": -62,
+      "wlanSNR": -1,
+      "duration": 6569,
+      "lockID": "306F097F264F41E6B000E8568FE1F8A5",
+      "bridgeID": "63308740d98cdb9f89b59487",
+      "serial": "C8W72000FU"
+    },
+    "doorState": "kAugDoorState_Closed",
+    "retryCount": 1,
+    "totalTime": 6586,
+    "resultsFromOperationCache": true,
+    "state": { "locked": true, "unlocked": false, "open": false, "closed": true },
+    "lockID": "306F097F264F41E6B000E8568FE1F8A5"
+  }
 ]
