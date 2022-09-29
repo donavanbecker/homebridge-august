@@ -26,6 +26,7 @@ export type options = {
   refreshRate?: number;
   pushRate?: number;
   logging?: string;
+  devices?: Array<devicesConfig>;
 };
 
 export type device = {
@@ -53,18 +54,15 @@ export type device = {
   zWaveEnabled: boolean;
   isGalileo: boolean;
   Bridge: Bridge;
-  OfflineKeys: OfflineKeys;
   parametersToSet: Record<any, undefined>;
   users: Record<any, undefined>;
   pubsubChannel: string;
   ruleHash: any;
   cameras: any[];
-  geofenceLimits: GeofenceLimits;
-  pins: Pins;
   lockId: string;
 }
 
-export interface BatteryInfo {
+export type BatteryInfo = {
   level: number
   warningState: string
   infoUpdatedDate: string
@@ -72,14 +70,14 @@ export interface BatteryInfo {
   lastChangeVoltage: number
 }
 
-export interface HostLockInfo {
+export type HostLockInfo = {
   serialNumber: string
   manufacturer: string
   productID: number
   productTypeID: number
 }
 
-export interface LockStatus {
+export type LockStatus = {
   status: string
   dateTime: string
   isLockStatusChanged: boolean
@@ -87,7 +85,7 @@ export interface LockStatus {
   doorState: string
 }
 
-export interface Bridge {
+export type Bridge ={
   _id: string
   mfgBridgeID: string
   deviceModel: string
@@ -98,81 +96,29 @@ export interface Bridge {
   hyperBridge: boolean
 }
 
-export interface Status {
+export type Status = {
   current: string
   lastOffline: string
   updated: string
   lastOnline: string
 }
 
-export interface Lock {
+export type Lock = {
   _id: string
   LockID: string
   macAddress: string
 }
 
-export interface OfflineKeys {
-  created: any[]
-  loaded: Loaded[]
-  deleted: any[]
-  loadedhk: Loadedhk[]
+export interface devicesConfig extends device {
+  configLockName?: string;
+  lockId: string;
+  lock: lock;
+  hide_device?: boolean;
+  logging?: string;
+  refreshRate?: number;
+  firmware?: string;
 }
 
-export interface Loaded {
-  created: string
-  key: string
-  slot: number
-  UserID: string
-  loaded: string
-}
-
-export interface Loadedhk {
-  key: string
-  slot: number
-  UserID: string
-  created: string
-  loaded: string
-}
-
-export interface GeofenceLimits {
-  ios: Ios
-}
-
-export interface Ios {
-  debounceInterval: number
-  gpsAccuracyMultiplier: number
-  maximumGeofence: number
-  minimumGeofence: number
-  minGPSAccuracyRequired: number
-}
-
-export interface Pins {
-  created: any[]
-  loaded: Loaded2[]
-  disabled: any[]
-  disabling: any[]
-  enabling: any[]
-  deleting: any[]
-  updating: any[]
-}
-
-export interface Loaded2 {
-  _id: string
-  type: string
-  lockID: string
-  userID: string
-  state: string
-  pin: string
-  slot: number
-  accessType: string
-  callingUserID: string
-  apiKey: string
-  createdAt: string
-  updatedAt: string
-  loadedDate: string
-  firstName: string
-  lastName: string
-  unverified: boolean
-}
-
-
+export type lock = {
+  hide_contactsensor?: boolean;
+};

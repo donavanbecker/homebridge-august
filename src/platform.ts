@@ -1,7 +1,7 @@
 import August from 'august-api';
 import { API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, Service } from 'homebridge';
-import { LockManagement } from './devices/lock';
-import { AugustPlatformConfig, PLUGIN_NAME, PLATFORM_NAME, device } from './settings';
+import { LockMechanism } from './devices/lock';
+import { AugustPlatformConfig, PLUGIN_NAME, PLATFORM_NAME, device, devicesConfig } from './settings';
 
 /**
  * HomebridgePlatform
@@ -16,9 +16,10 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   public readonly accessories: PlatformAccessory[] = [];
 
   version = require('../package.json').version; // eslint-disable-line @typescript-eslint/no-var-requires
+  august: August;
   debugMode!: boolean;
   platformLogging!: string;
-  august: August;
+  registeringDevice!: boolean;
 
   constructor(public readonly log: Logger, public readonly config: AugustPlatformConfig, public readonly api: API) {
     this.logs();
@@ -140,26 +141,58 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         this.august.authorize();
       } else {
       // A 6-digit code will be sent to your email or phone (depending on what you used for your augustId). Send the code back:
-        this.august.validate(this.config.credentials.validateCode); // Example code
+        this.august.validate(this.config.credentials.validateCode);
       }
 
-      // Example
-      const myLocks = await this.august.locks();
-      this.debugLog(JSON.stringify(myLocks));
-      const lockIds = Object.keys(myLocks);
-      this.debugLog(JSON.stringify(lockIds));
-      for (const lockId of lockIds) {
-        this.debugLog(JSON.stringify(lockId));
-        const device = await this.august.details(lockId);
-        this.debugLog(JSON.stringify(device));
-        this.createLock(device);
+      // August Locks
+      const devices = await this.august.details();
+      if (devices.length !== 0) {
+        this.infoLog(`Total August Locks Found: ${devices.length}`);
+      } else {
+        this.infoLog(`Total August Locks Found: ${devices.length}`);
+      }
+      const deviceLists = devices;
+      if (!this.config.options?.devices) {
+        this.debugLog(`August Device Config Not Set: ${JSON.stringify(this.config.options?.devices)}`);
+        const devices = deviceLists.map((v: any) => v);
+        for (const device of devices) {
+          if (device.configDeviceName) {
+            device.deviceName = device.configDeviceName;
+          }
+          this.errorLog(`device: ${JSON.stringify(device)}`);
+          this.createLock(device);
+        }
+      } else if (this.config.options.devices) {
+        this.warnLog(`August Device Config Set: ${JSON.stringify(this.config.options?.devices)}`);
+        const deviceConfigs = this.config.options?.devices;
+
+        const mergeBylockId = (a1: { lockId: string }[], a2: any[]) =>
+          a1.map((itm: { lockId: string }) => ({
+            ...a2.find(
+              (item: { lockId: string }) =>
+                item.lockId.toUpperCase().replace(/[^A-Z0-9]+/g, '') === itm.lockId.toUpperCase().replace(/[^A-Z0-9]+/g, '') && item,
+            ),
+            ...itm,
+          }));
+
+        const devices = mergeBylockId(deviceLists, deviceConfigs);
+        this.debugLog(`August Devices: ${JSON.stringify(devices)}`);
+        for (const device of devices) {
+          if (device.configDeviceName) {
+            device.deviceName = device.configDeviceName;
+          }
+          this.errorLog(`device: ${JSON.stringify(device)}`);
+          this.createLock(device);
+        }
+      } else {
+        this.errorLog('August ID & Password Supplied, Issue with Auth.');
       }
     } catch (e: any) {
       this.errorLog(e);
     }
   }
 
-  private async createLock(device: device) {
+  private async createLock(device: device & devicesConfig) {
     const uuid = this.api.hap.uuid.generate(device.lockId);
     // see if an accessory with the same uuid has already been registered and restored from
     // the cached devices we stored in the `configureAccessory` method above
@@ -167,7 +200,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
     if (existingAccessory) {
       // the accessory already exists
-      if (!this.config.disablePlugin) {
+      if (this.registerDevice(device)) {
         this.infoLog(`Restoring existing accessory from cache: ${device.LockName} DeviceID: ${device.lockId}`);
 
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
@@ -180,12 +213,12 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         this.api.updatePlatformAccessories([existingAccessory]);
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
-        new LockManagement(this, existingAccessory, device);
+        new LockMechanism(this, existingAccessory, device);
         this.debugLog(`${device.LockName} (${device.lockId}) uuid: ${existingAccessory.UUID}`);
       } else {
         this.unregisterPlatformAccessories(existingAccessory, device);
       }
-    } else if (!this.config.disablePlugin) {
+    } else if (this.registerDevice(device)) {
       // the accessory does not yet exist, so we need to create it
       this.infoLog(`Adding new accessory: ${device.LockName} Lock ID: ${device.lockId}`);
 
@@ -202,7 +235,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       accessory.context.deviceID = device.lockId;
       // create the accessory handler for the newly create accessory
       // this is imported from `platformAccessory.ts`
-      new LockManagement(this, accessory, device);
+      new LockMechanism(this, accessory, device);
       this.debugLog(`${device.LockName} (${device.lockId}) uuid:  ${accessory.UUID}`);
 
       // link the accessory to your platform
@@ -216,18 +249,21 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  public unregisterPlatformAccessories(existingAccessory: PlatformAccessory, device: device) {
+  private registerDevice(device: device & devicesConfig) {
+    if (!device.hide_device && !this.config.disablePlugin) {
+      this.registeringDevice = true;
+      this.debugLog(`Device: ${device.LockName} Enabled`);
+    } else {
+      this.registeringDevice = false;
+      this.debugLog(`Device: ${device.LockName} Plugin Disabled`);
+    }
+    return this.registeringDevice;
+  }
+
+  public unregisterPlatformAccessories(existingAccessory: PlatformAccessory, device: device & devicesConfig) {
     // remove platform accessories when no longer present
     this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
     this.warnLog(`Removing existing accessory from cache: ${device.LockName}`);
-  }
-
-  public locationinfo(location) {
-    if (this.platformLogging?.includes('debug')) {
-      if (location) {
-        this.warnLog(JSON.stringify(location));
-      }
-    }
   }
 
   /**

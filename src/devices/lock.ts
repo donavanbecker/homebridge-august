@@ -2,14 +2,14 @@ import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { interval, Subject } from 'rxjs';
 import { debounceTime, skipWhile, take, tap } from 'rxjs/operators';
 import { AugustPlatform } from '../platform';
-import { device } from '../settings';
+import { device, devicesConfig } from '../settings';
 
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
  * Each accessory may expose multiple services of different service types.
  */
-export class LockManagement {
+export class LockMechanism {
   lockService!: Service;
   contactSensorService?: Service;
   batteryService: Service;
@@ -43,7 +43,7 @@ export class LockManagement {
   lockUpdateInProgress: boolean;
   doLockUpdate: any;
 
-  constructor(private readonly platform: AugustPlatform, private accessory: PlatformAccessory, public device: device) {
+  constructor(private readonly platform: AugustPlatform, private accessory: PlatformAccessory, public device: device & devicesConfig) {
     this.logs(device);
     this.refreshRate(device);
     this.config(device);
@@ -70,9 +70,9 @@ export class LockManagement {
       .getCharacteristic(this.platform.Characteristic.FirmwareRevision)
       .updateValue(accessory.context.firmwareRevision);
 
-    // Lock Management Service
+    // Lock Mechanism Service
     (this.lockService =
-      this.accessory.getService(this.platform.Service.LockManagement) || this.accessory.addService(this.platform.Service.LockManagement)),
+      this.accessory.getService(this.platform.Service.LockMechanism) || this.accessory.addService(this.platform.Service.LockMechanism)),
     accessory.displayName;
 
     // Service Name
@@ -87,18 +87,18 @@ export class LockManagement {
 
     // Contact Sensor Service
     if (device.LockStatus.doorState) {
-      this.debugLog(`Lock: ${accessory.displayName} Removing Contact Sensor Service`);
+      this.warnLog(`Lock: ${accessory.displayName} Removing Contact Sensor Service`);
       this.contactSensorService = this.accessory.getService(this.platform.Service.ContactSensor);
       accessory.removeService(this.contactSensorService!);
     } else if (!this.contactSensorService) {
-      this.debugLog(`Lock: ${accessory.displayName} Add Contact Sensor Service`);
+      this.warnLog(`Lock: ${accessory.displayName} Add Contact Sensor Service`);
       (this.contactSensorService =
         this.accessory.getService(this.platform.Service.ContactSensor) || this.accessory.addService(this.platform.Service.ContactSensor)),
       `${accessory.displayName} Contact Sensor`;
 
       this.contactSensorService.setCharacteristic(this.platform.Characteristic.Name, `${accessory.displayName} Contact Sensor`);
     } else {
-      this.debugLog(`Lock: ${accessory.displayName} Contact Sensor Service Not Added`);
+      this.warnLog(`Lock: ${accessory.displayName} Contact Sensor Service Not Added`);
     }
 
     // Battery Service
@@ -147,7 +147,7 @@ export class LockManagement {
    */
   async parseStatus(): Promise<void> {
     this.debugLog(`Lock: ${this.accessory.displayName} parseStatus`);
-    // Lock Management
+    // Lock Mechanism
     if (this.retryCount) {
       this.LockCurrentState = this.platform.Characteristic.LockCurrentState.JAMMED;
     } else if (this.locked) {
@@ -224,10 +224,10 @@ export class LockManagement {
       const august = this.platform.august;
       if (this.LockTargetState === this.platform.Characteristic.LockTargetState.UNSECURED) {
         const lockStatus = await august.unlock(this.device.lockId);
-        this.warnLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${JSON.stringify(lockStatus)}`);
+        this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${JSON.stringify(lockStatus)}`);
       } else if (this.LockTargetState === this.platform.Characteristic.LockTargetState.SECURED){
         const lockStatus = await august.lock(this.device.lockId);
-        this.warnLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${JSON.stringify(lockStatus)}`);
+        this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${JSON.stringify(lockStatus)}`);
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges) failed, this.LockTargetState: ${this.LockTargetState}`);
       }
@@ -240,20 +240,20 @@ export class LockManagement {
    * Updates the status for each of the HomeKit Characteristics
    */
   async updateHomeKitCharacteristics(): Promise<void> {
-    // Lock Management
+    // Lock Mechanism
     if (this.LockTargetState === undefined) {
-      this.warnLog(`Lock: ${this.accessory.displayName} LockTargetState: ${this.LockTargetState}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} LockTargetState: ${this.LockTargetState}`);
     } else {
       this.accessory.context.LockCurrentState = this.LockTargetState;
       this.lockService.updateCharacteristic(this.platform.Characteristic.LockTargetState, this.LockTargetState);
-      this.warnLog(`Lock: ${this.accessory.displayName} updateCharacteristic LockTargetState: ${this.LockTargetState}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic LockTargetState: ${this.LockTargetState}`);
     }
     if (this.LockCurrentState === undefined) {
-      this.warnLog(`Lock: ${this.accessory.displayName} LockCurrentState: ${this.LockCurrentState}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} LockCurrentState: ${this.LockCurrentState}`);
     } else {
       this.accessory.context.LockCurrentState = this.LockCurrentState;
       this.lockService.updateCharacteristic(this.platform.Characteristic.LockCurrentState, this.LockCurrentState);
-      this.warnLog(`Lock: ${this.accessory.displayName} updateCharacteristic LockCurrentState: ${this.LockCurrentState}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic LockCurrentState: ${this.LockCurrentState}`);
     }
     // Battery
     if (this.BatteryLevel === undefined) {
@@ -283,10 +283,10 @@ export class LockManagement {
     this.doLockUpdate.next();
   }
 
-  async config(device): Promise<void> {
+  async config(device: device & devicesConfig): Promise<void> {
     let config = {};
-    if (device.thermostat) {
-      config = device.thermostat;
+    if (device.lock) {
+      config = '';
     }
     if (device.logging !== undefined) {
       config['logging'] = device.logging;
@@ -299,7 +299,7 @@ export class LockManagement {
     }
   }
 
-  async refreshRate(device): Promise<void> {
+  async refreshRate(device: device & devicesConfig): Promise<void> {
     if (device.refreshRate) {
       this.deviceRefreshRate = this.accessory.context.refreshRate = device.refreshRate;
       this.debugLog(`Lock: ${this.accessory.displayName} Using Device Config refreshRate: ${this.deviceRefreshRate}`);
@@ -309,7 +309,7 @@ export class LockManagement {
     }
   }
 
-  async logs(device): Promise<void> {
+  async logs(device: device & devicesConfig): Promise<void> {
     if (this.platform.debugMode) {
       this.deviceLogging = this.accessory.context.logging = 'debugMode';
       this.debugLog(`Lock: ${this.accessory.displayName} Using Debug Mode Logging: ${this.deviceLogging}`);
