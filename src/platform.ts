@@ -133,7 +133,6 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
   /**
    * This method is used to discover the your location and devices.
-   * Accessories are registered by either their DeviceClass, DeviceModel, or DeviceID
    */
   private async discoverDevices() {
     try {
@@ -217,7 +216,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         existingAccessory.context.currentFirmwareVersion = device.currentFirmwareVersion;
         existingAccessory.context.model = device.skuNumber;
         existingAccessory.context.serialnumber = device.SerialNumber;
-        existingAccessory.context.deviceID = device.lockId;
+        existingAccessory.context.lockId = device.lockId;
         this.api.updatePlatformAccessories([existingAccessory]);
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
@@ -240,7 +239,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       accessory.context.currentFirmwareVersion = device.currentFirmwareVersion;
       accessory.context.model = device.skuNumber;
       accessory.context.serialnumber = device.SerialNumber;
-      accessory.context.deviceID = device.lockId;
+      accessory.context.lockId = device.lockId;
       // create the accessory handler for the newly create accessory
       // this is imported from `platformAccessory.ts`
       new LockMechanism(this, accessory, device);
@@ -252,7 +251,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     } else {
       if (this.platformLogging?.includes('debug')) {
         this.errorLog(`Unable to Register new device: ${device.LockName} Lock ID: ${device.lockId}`);
-        this.errorLog('Check Config to see if DeviceID is being Hidden.');
+        this.errorLog('Check Config to see if lockId is being Hidden.');
       }
     }
   }
