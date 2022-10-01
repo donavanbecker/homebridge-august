@@ -241,9 +241,11 @@ export class LockMechanism {
       if (this.LockTargetState === this.platform.Characteristic.LockTargetState.UNSECURED) {
         const lockStatus = await august.unlock(this.device.lockId);
         this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${JSON.stringify(lockStatus)}`);
+        this.infoLog(`Lock: ${this.accessory.displayName} Sending request to August API: Unlock (${this.LockTargetState})`);
       } else if (this.LockTargetState === this.platform.Characteristic.LockTargetState.SECURED){
         const lockStatus = await august.lock(this.device.lockId);
         this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${JSON.stringify(lockStatus)}`);
+        this.infoLog(`Lock: ${this.accessory.displayName} Sending request to August API: Lock (${this.LockTargetState})`);
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges) failed, this.LockTargetState: ${this.LockTargetState}`);
       }
