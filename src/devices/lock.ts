@@ -150,7 +150,7 @@ export class LockMechanism {
   async parseStatus(): Promise<void> {
     this.debugLog(`Lock: ${this.accessory.displayName} parseStatus`);
     // Lock Mechanism
-    if (this.retryCount) {
+    if (this.retryCount > 1) {
       this.LockCurrentState = this.platform.Characteristic.LockCurrentState.JAMMED;
     } else if (this.locked) {
       this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
