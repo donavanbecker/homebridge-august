@@ -304,32 +304,35 @@ export class LockMechanism {
     const august = this.platform.august;
 
     const subscribe = await august.subscribe(this.device.lockId);
-    this.lockStatus = subscribe;
-    this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${JSON.stringify(this.lockStatus)}`);
-    this.retryCount = this.lockStatus.retryCount;
-    this.debugLog(`Lock: ${this.accessory.displayName} retryCount (lockStatus): ${this.retryCount}`);
-    this.state = this.lockStatus.state;
-    this.debugLog(`Lock: ${this.accessory.displayName} state (lockStatus): ${JSON.stringify(this.state)}`);
-    this.locked = this.lockStatus.state.locked;
-    this.debugLog(`Lock: ${this.accessory.displayName} locked (lockStatus): ${this.locked}`);
-    this.unlocked = this.lockStatus.state.unlocked;
-    this.debugLog(`Lock: ${this.accessory.displayName} unlocked (lockStatus): ${this.unlocked}`);
-    this.open = this.lockStatus.state.open;
-    this.debugLog(`Lock: ${this.accessory.displayName} open (lockStatus): ${this.open}`);
-    this.closed = this.lockStatus.state.closed;
-    this.debugLog(`Lock: ${this.accessory.displayName} closed (lockStatus): ${this.closed}`);
+    if (subscribe !== undefined) {
+      this.lockStatus = subscribe;
+      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${JSON.stringify(this.lockStatus)}`);
+      this.retryCount = this.lockStatus.retryCount;
+      this.debugLog(`Lock: ${this.accessory.displayName} retryCount (lockStatus): ${this.retryCount}`);
+      this.state = this.lockStatus.state;
+      this.debugLog(`Lock: ${this.accessory.displayName} state (lockStatus): ${JSON.stringify(this.state)}`);
+      this.locked = this.lockStatus.state.locked;
+      this.debugLog(`Lock: ${this.accessory.displayName} locked (lockStatus): ${this.locked}`);
+      this.unlocked = this.lockStatus.state.unlocked;
+      this.debugLog(`Lock: ${this.accessory.displayName} unlocked (lockStatus): ${this.unlocked}`);
+      this.open = this.lockStatus.state.open;
+      this.debugLog(`Lock: ${this.accessory.displayName} open (lockStatus): ${this.open}`);
+      this.closed = this.lockStatus.state.closed;
+      this.debugLog(`Lock: ${this.accessory.displayName} closed (lockStatus): ${this.closed}`);
 
-    // Update Lock Details
-    this.lockDetails = subscribe;
-    this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${JSON.stringify(this.lockDetails)}`);
-    this.battery = Number(this.lockDetails.battery) * 100;
-    this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
-    this.doorState = this.lockDetails.LockStatus.doorState;
-    this.debugLog(`Lock: ${this.accessory.displayName} doorState (lockDetails): ${this.doorState}`);
-    this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
-    this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
 
-    this.errorLog(`Lock: ${this.accessory.displayName} subscribe: ${JSON.stringify(subscribe)}`);
+      // Update Lock Details
+      this.lockDetails = subscribe;
+      this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${JSON.stringify(this.lockDetails)}`);
+      this.battery = Number(this.lockDetails.battery) * 100;
+      this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
+      this.doorState = this.lockDetails.LockStatus.doorState;
+      this.debugLog(`Lock: ${this.accessory.displayName} doorState (lockDetails): ${this.doorState}`);
+      this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
+      this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
+
+      this.errorLog(`Lock: ${this.accessory.displayName} subscribe: ${JSON.stringify(subscribe)}`);
+    }
     // Update HomeKit
     this.parseStatus();
     this.updateHomeKitCharacteristics();
