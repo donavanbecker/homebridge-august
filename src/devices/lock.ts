@@ -249,12 +249,7 @@ export class LockMechanism {
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges) failed, this.LockTargetState: ${this.LockTargetState}`);
       }
-
-      interval(this.updateRate * 1000)
-        .pipe(take(2))
-        .subscribe(async () => {
-          await this.refreshStatus();
-        });
+      await this.refreshStatus();
     } catch (e: any) {
       this.errorLog(e);
     }
