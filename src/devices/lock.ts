@@ -112,7 +112,7 @@ export class LockMechanism {
     this.updateHomeKitCharacteristics();
 
     // Start an update interval
-    interval(this.platform.config.options!.refreshRate! * 1000)
+    interval(this.deviceRefreshRate * 1000)
       .pipe(skipWhile(() => this.lockUpdateInProgress))
       .subscribe(async () => {
         await this.refreshStatus();
@@ -133,14 +133,14 @@ export class LockMechanism {
         } catch (e: any) {
           this.errorLog(e);
         }
-        this.lockUpdateInProgress = false;
         // Refresh the status from the API
-        interval(15000)
+        interval(this.deviceRefreshRate * 500)
           .pipe(skipWhile(() => this.lockUpdateInProgress))
           .pipe(take(1))
           .subscribe(async () => {
             await this.refreshStatus();
           });
+        this.lockUpdateInProgress = false;
       });
   }
 
@@ -249,7 +249,6 @@ export class LockMechanism {
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges) failed, this.LockTargetState: ${this.LockTargetState}`);
       }
-      await this.refreshStatus();
     } catch (e: any) {
       this.errorLog(e);
     }
