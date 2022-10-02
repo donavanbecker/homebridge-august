@@ -304,8 +304,9 @@ export class LockMechanism {
     const august = this.platform.august;
 
     const subscribe = await august.subscribe(this.device.lockId);
-    this.warnLog(JSON.stringify(subscribe));
-    if (subscribe !== undefined) {
+    if (subscribe === undefined) {
+      this.warnLog(JSON.stringify(subscribe));
+    } else {
       this.lockStatus = subscribe;
       this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${JSON.stringify(this.lockStatus)}`);
       this.retryCount = this.lockStatus.retryCount;
@@ -320,7 +321,6 @@ export class LockMechanism {
       this.debugLog(`Lock: ${this.accessory.displayName} open (lockStatus): ${this.open}`);
       this.closed = this.lockStatus.state.closed;
       this.debugLog(`Lock: ${this.accessory.displayName} closed (lockStatus): ${this.closed}`);
-
 
       // Update Lock Details
       this.lockDetails = subscribe;
