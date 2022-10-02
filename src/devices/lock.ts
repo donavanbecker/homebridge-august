@@ -104,7 +104,6 @@ export class LockMechanism {
     `${accessory.displayName} Battery`;
 
     this.subscribeAugust();
-    this.updateHomeKitCharacteristics();
 
     // Retrieve initial values and updateHomekit
     this.updateHomeKitCharacteristics();
