@@ -49,18 +49,15 @@ export class LockMechanism {
     this.logs(device);
     this.refreshRate(device);
     this.config(device);
-
-    if (this.LockCurrentState === undefined) {
-      this.LockCurrentState = this.accessory.context.LockCurrentState | this.platform.Characteristic.LockCurrentState.UNKNOWN;
-    }
-    if (this.LockTargetState === undefined) {
-      this.LockTargetState = this.accessory.context.LockTargetState | this.platform.Characteristic.LockTargetState.UNSECURED;
-    }
+    this.cacheState();
 
     // default placeholders
     // this is subject we use to track when we need to POST changes to the August API
     this.doLockUpdate = new Subject();
     this.lockUpdateInProgress = false;
+
+    // Initial Device Parse
+    this.refreshStatus();
 
     // set accessory information
     accessory
@@ -81,8 +78,6 @@ export class LockMechanism {
     this.lockService.setCharacteristic(this.platform.Characteristic.Name, accessory.displayName);
     //Required Characteristics" see https://developers.homebridge.io/#/service/LockMechanism
 
-    // Initial Device Parse
-    this.refreshStatus();
 
     // Create handlers for required characteristics
     this.lockService.getCharacteristic(this.platform.Characteristic.LockTargetState).onSet(this.setLockTargetState.bind(this));
@@ -277,6 +272,7 @@ export class LockMechanism {
     if (this.BatteryLevel === undefined) {
       this.debugLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel}`);
     } else {
+      this.accessory.context.BatteryLevel = this.BatteryLevel;
       this.batteryService.updateCharacteristic(this.platform.Characteristic.BatteryLevel, this.BatteryLevel);
       this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic BatteryLevel: ${this.BatteryLevel}`);
     }
@@ -290,6 +286,7 @@ export class LockMechanism {
     if (this.ContactSensorState === undefined) {
       this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
     } else {
+      this.accessory.context.ContactSensorState = this.ContactSensorState;
       this.contactSensorService?.updateCharacteristic(this.platform.Characteristic.ContactSensorState, this.ContactSensorState);
       this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic ContactSensorState: ${this.ContactSensorState}`);
     }
@@ -299,6 +296,28 @@ export class LockMechanism {
     this.debugLog(`Lock: ${this.accessory.displayName} Set LockTargetState: ${value}`);
     this.LockTargetState = value;
     this.doLockUpdate.next();
+  }
+
+  async cacheState() {
+    if (this.LockCurrentState === undefined) {
+      this.LockCurrentState = this.accessory.context.LockCurrentState | this.platform.Characteristic.LockCurrentState.SECURED;
+    }
+    if (this.LockTargetState === undefined) {
+      this.LockTargetState = this.accessory.context.LockTargetState | this.platform.Characteristic.LockTargetState.SECURED;
+    }
+    if (this.ContactSensorState === undefined) {
+      this.ContactSensorState = this.accessory.context.ContactSensorState | this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+    }
+    if (this.BatteryLevel === undefined) {
+      this.BatteryLevel = this.accessory.context.BatteryLevel | 100;
+    }
+    if (this.StatusLowBattery === undefined) {
+      if (this.BatteryLevel < 15) {
+        this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
+      } else {
+        this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
+      }
+    }
   }
 
   async config(device: device & devicesConfig): Promise<void> {
