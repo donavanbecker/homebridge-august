@@ -304,6 +304,7 @@ export class LockMechanism {
     const august = this.platform.august;
 
     const subscribe = await august.subscribe(this.device.lockId);
+    this.warnLog(JSON.stringify(subscribe));
     if (subscribe !== undefined) {
       this.lockStatus = subscribe;
       this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${JSON.stringify(this.lockStatus)}`);
