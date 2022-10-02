@@ -24,7 +24,9 @@ export class LockMechanism {
 
   // Lock Status
   lockStatus: any;
+  lockState: any;
   retryCount: any;
+  status: any;
   state: any;
   locked!: boolean;
   unlocked!: boolean;
@@ -103,10 +105,11 @@ export class LockMechanism {
       this.accessory.getService(this.platform.Service.Battery) || this.accessory.addService(this.platform.Service.Battery)),
     `${accessory.displayName} Battery`;
 
-    this.subscribeAugust();
-
     // Retrieve initial values and updateHomekit
     this.updateHomeKitCharacteristics();
+
+    // Subscribe to august changes
+    this.subscribeAugust();
 
     // Start an update interval
     interval(this.deviceRefreshRate * 1000)
@@ -157,14 +160,16 @@ export class LockMechanism {
       this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNKNOWN;
     }
     // Battery
-    this.BatteryLevel = this.battery.toFixed();
-    this.batteryService.getCharacteristic(this.platform.Characteristic.BatteryLevel).updateValue(this.BatteryLevel);
-    if (this.BatteryLevel < 15) {
-      this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
-    } else {
-      this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
+    if (Number(this.battery)) {
+      this.BatteryLevel = this.battery.toFixed();
+      this.batteryService.getCharacteristic(this.platform.Characteristic.BatteryLevel).updateValue(this.BatteryLevel);
+      if (this.BatteryLevel < 15) {
+        this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
+      } else {
+        this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
+      }
+      this.debugLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel},` + ` StatusLowBattery: ${this.StatusLowBattery}`);
     }
-    this.debugLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel},` + ` StatusLowBattery: ${this.StatusLowBattery}`);
     // Contact Sensor
     if (this.doorState === 'open' && this.open) {
       this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
@@ -304,35 +309,57 @@ export class LockMechanism {
     const august = this.platform.august;
 
     const subscribe = await august.subscribe(this.device.lockId);
+
+    /**{
+    // From August
+    status: ['unlocked', 'locked'],
+    callingUserID: enum['manuallock', 'manualunlock', UserId],
+    doorState: ['open', 'closed'],
+    // -----------
+    // Added in this module
+    state: {
+    locked: boolean,
+    unlocked: boolean,
+    open: boolean,
+    closed: boolean
+    },
+    lockID: string
+    } */
     if (subscribe === undefined) {
       this.warnLog(JSON.stringify(subscribe));
     } else {
       this.lockStatus = subscribe;
-      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${JSON.stringify(this.lockStatus)}`);
-      this.retryCount = this.lockStatus.retryCount;
-      this.debugLog(`Lock: ${this.accessory.displayName} retryCount (lockStatus): ${this.retryCount}`);
-      this.state = this.lockStatus.state;
-      this.debugLog(`Lock: ${this.accessory.displayName} state (lockStatus): ${JSON.stringify(this.state)}`);
-      this.locked = this.lockStatus.state.locked;
-      this.debugLog(`Lock: ${this.accessory.displayName} locked (lockStatus): ${this.locked}`);
-      this.unlocked = this.lockStatus.state.unlocked;
-      this.debugLog(`Lock: ${this.accessory.displayName} unlocked (lockStatus): ${this.unlocked}`);
-      this.open = this.lockStatus.state.open;
-      this.debugLog(`Lock: ${this.accessory.displayName} open (lockStatus): ${this.open}`);
-      this.closed = this.lockStatus.state.closed;
-      this.debugLog(`Lock: ${this.accessory.displayName} closed (lockStatus): ${this.closed}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (subscribeAugust): ${JSON.stringify(this.lockStatus)}`);
 
-      // Update Lock Details
-      this.lockDetails = subscribe;
-      this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${JSON.stringify(this.lockDetails)}`);
-      this.battery = Number(this.lockDetails.battery) * 100;
-      this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
-      this.doorState = this.lockDetails.LockStatus.doorState;
-      this.debugLog(`Lock: ${this.accessory.displayName} doorState (lockDetails): ${this.doorState}`);
-      this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
-      this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
+      // status
+      this.status = this.lockStatus.status;
+      this.debugLog(`Lock: ${this.accessory.displayName} status (subscribeAugust - status): ${JSON.stringify(this.status)}`);
+      /*this.locked = this.lockStatus.status.locked;
+      this.debugLog(`Lock: ${this.accessory.displayName} locked (subscribeAugust - status): ${this.locked}`);
+      this.unlocked = this.lockStatus.status.unlocked;
+      this.debugLog(`Lock: ${this.accessory.displayName} unlocked (subscribeAugust - status): ${this.unlocked}`);
 
-      this.errorLog(`Lock: ${this.accessory.displayName} subscribe: ${JSON.stringify(subscribe)}`);
+      // dooState
+      this.doorState = this.lockStatus.doorState;
+      this.debugLog(`Lock: ${this.accessory.displayName} doorState (subscribeAugust - dooState): ${JSON.stringify(this.doorState)}`);
+      this.open = this.lockStatus.doorState.open;
+      this.debugLog(`Lock: ${this.accessory.displayName} open (subscribeAugust - dooState): ${this.open}`);
+      this.closed = this.lockStatus.doorState.closed;
+      this.debugLog(`Lock: ${this.accessory.displayName} closed (subscribeAugust - dooState): ${this.closed}`);
+
+      // state
+      this.state = subscribe;
+      this.debugLog(`Lock: ${this.accessory.displayName} state (subscribeAugust - state): ${JSON.stringify(this.state)}`);
+      this.locked = this.state.locked;
+      this.debugLog(`Lock: ${this.accessory.displayName} locked (subscribeAugust - state): ${this.locked}`);
+      this.unlocked = this.state.unlocked;
+      this.debugLog(`Lock: ${this.accessory.displayName} unlocked (subscribeAugust - state): ${this.unlocked}`);
+      this.open = this.state.open;
+      this.debugLog(`Lock: ${this.accessory.displayName} open (subscribeAugust - state): ${this.open}`);
+      this.closed = this.state.closed;
+      this.debugLog(`Lock: ${this.accessory.displayName} closed (subscribeAugust - state): ${this.closed}`);
+
+      this.errorLog(`Lock: ${this.accessory.displayName} subscribe: ${JSON.stringify(subscribe)}`);*/
     }
     // Update HomeKit
     this.parseStatus();
