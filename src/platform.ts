@@ -1,4 +1,5 @@
 import August from 'august-api';
+import superStringify from 'super-stringify';
 import { API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, Service } from 'homebridge';
 import { LockMechanism } from './devices/lock';
 import { AugustPlatformConfig, PLUGIN_NAME, PLATFORM_NAME, device, devicesConfig } from './settings';
@@ -17,6 +18,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
   version = require('../package.json').version; // eslint-disable-line @typescript-eslint/no-var-requires
   august: August;
+  account: any;
   debugMode!: boolean;
   platformLogging!: string;
   registeringDevice!: boolean;
@@ -106,7 +108,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       platformConfig['pushRate'] = this.config.options.pushRate;
     }
     if (Object.entries(platformConfig).length !== 0) {
-      this.warnLog(`Platform Config: ${JSON.stringify(platformConfig)}`);
+      this.warnLog(`Platform Config: ${superStringify(platformConfig)}`);
     }
 
     if (!this.config.options.refreshRate) {
@@ -121,7 +123,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       throw new Error('Missing Credentials');
     }
     if (!this.config.credentials.validateCode) {
-      this.warnLog(`Platform Config: ${JSON.stringify(platformConfig)}`);
+      this.warnLog(`Platform Config: ${superStringify(platformConfig)}`);
     }
     if (!this.config.credentials.augustId) {
       throw new Error('Missing August ID (E-mail/Phone Number');
@@ -137,12 +139,13 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   private async discoverDevices() {
     try {
       const uuid = this.api.hap.uuid.generate(`${this.config.credentials?.augustId}`);
-      this.august = new August({
+      this.account = {
         installId: uuid,
         augustId: this.config.credentials?.augustId,
         password: this.config.credentials?.password,
-      });
-      this.debugLog(JSON.stringify(this.august));
+      };
+      this.august = new August(this.account);
+      this.debugLog(superStringify(this.august));
       // If this is the first time you're using this installId, you need to authorize and validate:
       if (!this.config.credentials?.validateCode) {
         this.august.authorize();
@@ -160,17 +163,17 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       }
       const deviceLists = devices;
       if (!this.config.options?.devices) {
-        this.debugLog(`August Platform Config Not Set: ${JSON.stringify(this.config.options?.devices)}`);
+        this.debugLog(`August Platform Config Not Set: ${superStringify(this.config.options?.devices)}`);
         const devices = deviceLists.map((v: any) => v);
         for (const device of devices) {
           if (device.configDeviceName) {
             device.deviceName = device.configDeviceName;
           }
-          this.debugLog(`device: ${JSON.stringify(device)}`);
+          this.debugLog(`device: ${superStringify(device)}`);
           this.createLock(device);
         }
       } else if (this.config.options.devices) {
-        this.warnLog(`August Platform Config Set: ${JSON.stringify(this.config.options?.devices)}`);
+        this.warnLog(`August Platform Config Set: ${superStringify(this.config.options?.devices)}`);
         const deviceConfigs = this.config.options?.devices;
 
         const mergeBylockId = (a1: { lockId: string }[], a2: any[]) =>
@@ -183,12 +186,12 @@ export class AugustPlatform implements DynamicPlatformPlugin {
           }));
 
         const devices = mergeBylockId(deviceLists, deviceConfigs);
-        this.debugLog(`August Lock(s): ${JSON.stringify(devices)}`);
+        this.debugLog(`August Lock(s): ${superStringify(devices)}`);
         for (const device of devices) {
           if (device.configDeviceName) {
             device.deviceName = device.configDeviceName;
           }
-          this.debugLog(`device: ${JSON.stringify(device)}`);
+          this.debugLog(`device: ${superStringify(device)}`);
           this.createLock(device);
         }
       } else {

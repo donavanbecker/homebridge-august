@@ -2,6 +2,7 @@ import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { interval, Subject } from 'rxjs';
 import { debounceTime, skipWhile, take, tap } from 'rxjs/operators';
 import { AugustPlatform } from '../platform';
+import superStringify from 'super-stringify';
 import { device, devicesConfig } from '../settings';
 
 /**
@@ -201,11 +202,11 @@ export class LockMechanism {
       // Update Lock Status
       const lockStatus = await august.status(this.device.lockId);
       this.lockStatus = lockStatus;
-      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${JSON.stringify(this.lockStatus)}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(this.lockStatus)}`);
       this.retryCount = this.lockStatus.retryCount;
       this.debugLog(`Lock: ${this.accessory.displayName} retryCount (lockStatus): ${this.retryCount}`);
       this.state = this.lockStatus.state;
-      this.debugLog(`Lock: ${this.accessory.displayName} state (lockStatus): ${JSON.stringify(this.state)}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} state (lockStatus): ${superStringify(this.state)}`);
       this.locked = this.lockStatus.state.locked;
       this.debugLog(`Lock: ${this.accessory.displayName} locked (lockStatus): ${this.locked}`);
       this.unlocked = this.lockStatus.state.unlocked;
@@ -218,7 +219,7 @@ export class LockMechanism {
       // Update Lock Details
       const lockDetails = await august.details(this.device.lockId);
       this.lockDetails = lockDetails;
-      this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${JSON.stringify(this.lockDetails)}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(this.lockDetails)}`);
       this.battery = Number(this.lockDetails.battery) * 100;
       this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
       this.doorState = this.lockDetails.LockStatus.doorState;
@@ -242,11 +243,11 @@ export class LockMechanism {
       const august = this.platform.august;
       if (this.LockTargetState === this.platform.Characteristic.LockTargetState.UNSECURED) {
         const lockStatus = await august.unlock(this.device.lockId);
-        this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${JSON.stringify(lockStatus)}`);
+        this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${superStringify(lockStatus)}`);
         this.infoLog(`Lock: ${this.accessory.displayName} Sending request to August API: Unlock (${this.LockTargetState})`);
       } else if (this.LockTargetState === this.platform.Characteristic.LockTargetState.SECURED){
         const lockStatus = await august.lock(this.device.lockId);
-        this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${JSON.stringify(lockStatus)}`);
+        this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${superStringify(lockStatus)}`);
         this.infoLog(`Lock: ${this.accessory.displayName} Sending request to August API: Lock (${this.LockTargetState})`);
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges) failed, this.LockTargetState: ${this.LockTargetState}`);
@@ -306,34 +307,16 @@ export class LockMechanism {
   }
 
   async subscribeAugust(): Promise<void> {
-    const august = this.platform.august;
+    const subscribe = await this.platform.august.subscribe(this.device.lockId);
+    this.infoLog(superStringify(subscribe));
 
-    const subscribe = await august.subscribe(this.device.lockId);
-
-    /**{
-    // From August
-    status: ['unlocked', 'locked'],
-    callingUserID: enum['manuallock', 'manualunlock', UserId],
-    doorState: ['open', 'closed'],
-    // -----------
-    // Added in this module
-    state: {
-    locked: boolean,
-    unlocked: boolean,
-    open: boolean,
-    closed: boolean
-    },
-    lockID: string
-    } */
     if (subscribe === undefined) {
-      this.warnLog(JSON.stringify(subscribe));
-    } else {
       this.lockStatus = subscribe;
-      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (subscribeAugust): ${JSON.stringify(this.lockStatus)}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (subscribeAugust): ${superStringify(this.lockStatus)}`);
 
       // status
       this.status = this.lockStatus.status;
-      this.debugLog(`Lock: ${this.accessory.displayName} status (subscribeAugust - status): ${JSON.stringify(this.status)}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} status (subscribeAugust - status): ${superStringify(this.status)}`);
       /*this.locked = this.lockStatus.status.locked;
       this.debugLog(`Lock: ${this.accessory.displayName} locked (subscribeAugust - status): ${this.locked}`);
       this.unlocked = this.lockStatus.status.unlocked;
@@ -341,7 +324,7 @@ export class LockMechanism {
 
       // dooState
       this.doorState = this.lockStatus.doorState;
-      this.debugLog(`Lock: ${this.accessory.displayName} doorState (subscribeAugust - dooState): ${JSON.stringify(this.doorState)}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} doorState (subscribeAugust - dooState): ${superStringify(this.doorState)}`);
       this.open = this.lockStatus.doorState.open;
       this.debugLog(`Lock: ${this.accessory.displayName} open (subscribeAugust - dooState): ${this.open}`);
       this.closed = this.lockStatus.doorState.closed;
@@ -349,7 +332,7 @@ export class LockMechanism {
 
       // state
       this.state = subscribe;
-      this.debugLog(`Lock: ${this.accessory.displayName} state (subscribeAugust - state): ${JSON.stringify(this.state)}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} state (subscribeAugust - state): ${superStringify(this.state)}`);
       this.locked = this.state.locked;
       this.debugLog(`Lock: ${this.accessory.displayName} locked (subscribeAugust - state): ${this.locked}`);
       this.unlocked = this.state.unlocked;
@@ -359,11 +342,11 @@ export class LockMechanism {
       this.closed = this.state.closed;
       this.debugLog(`Lock: ${this.accessory.displayName} closed (subscribeAugust - state): ${this.closed}`);
 
-      this.errorLog(`Lock: ${this.accessory.displayName} subscribe: ${JSON.stringify(subscribe)}`);*/
+      this.errorLog(`Lock: ${this.accessory.displayName} subscribe: ${superStringify(subscribe)}`);*/
+      // Update HomeKit
+      this.parseStatus();
+      this.updateHomeKitCharacteristics();
     }
-    // Update HomeKit
-    this.parseStatus();
-    this.updateHomeKitCharacteristics();
   }
 
   async cacheState() {
@@ -400,7 +383,7 @@ export class LockMechanism {
       config['refreshRate'] = device.refreshRate;
     }
     if (Object.entries(config).length !== 0) {
-      this.warnLog(`Lock: ${this.accessory.displayName} Config: ${JSON.stringify(config)}`);
+      this.warnLog(`Lock: ${this.accessory.displayName} Config: ${superStringify(config)}`);
     }
   }
 
