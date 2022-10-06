@@ -328,9 +328,9 @@ export class LockMechanism {
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} doorState (AugustEvent): ${AugustEvent.doorState}`);
       }
+      // Update HomeKit
+      this.updateHomeKitCharacteristics();
     });
-    // Update HomeKit
-    this.updateHomeKitCharacteristics();
   }
 
 
