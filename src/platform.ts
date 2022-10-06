@@ -209,6 +209,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     const existingAccessory = this.accessories.find((accessory) => accessory.UUID === uuid);
 
     if (existingAccessory) {
+
       // the accessory already exists
       if (this.registerDevice(device)) {
         this.infoLog(`Restoring existing accessory from cache: ${device.LockName} Lock ID: ${device.lockId}`);

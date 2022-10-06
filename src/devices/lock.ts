@@ -307,47 +307,15 @@ export class LockMechanism {
   }
 
   async subscribeAugust(): Promise<void> {
-    const subscribe = await this.platform.august.subscribe(this.device.lockId);
-    this.infoLog(superStringify(subscribe));
+    await this.platform.august.subscribe(this.device.lockId, (AugustEvent: any, timestamp: any) => {
+      this.infoLog(superStringify(AugustEvent), superStringify(timestamp));
+    });
 
-    if (subscribe === undefined) {
-      this.lockStatus = subscribe;
-      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (subscribeAugust): ${superStringify(this.lockStatus)}`);
-
-      // status
-      this.status = this.lockStatus.status;
-      this.debugLog(`Lock: ${this.accessory.displayName} status (subscribeAugust - status): ${superStringify(this.status)}`);
-      /*this.locked = this.lockStatus.status.locked;
-      this.debugLog(`Lock: ${this.accessory.displayName} locked (subscribeAugust - status): ${this.locked}`);
-      this.unlocked = this.lockStatus.status.unlocked;
-      this.debugLog(`Lock: ${this.accessory.displayName} unlocked (subscribeAugust - status): ${this.unlocked}`);
-
-      // dooState
-      this.doorState = this.lockStatus.doorState;
-      this.debugLog(`Lock: ${this.accessory.displayName} doorState (subscribeAugust - dooState): ${superStringify(this.doorState)}`);
-      this.open = this.lockStatus.doorState.open;
-      this.debugLog(`Lock: ${this.accessory.displayName} open (subscribeAugust - dooState): ${this.open}`);
-      this.closed = this.lockStatus.doorState.closed;
-      this.debugLog(`Lock: ${this.accessory.displayName} closed (subscribeAugust - dooState): ${this.closed}`);
-
-      // state
-      this.state = subscribe;
-      this.debugLog(`Lock: ${this.accessory.displayName} state (subscribeAugust - state): ${superStringify(this.state)}`);
-      this.locked = this.state.locked;
-      this.debugLog(`Lock: ${this.accessory.displayName} locked (subscribeAugust - state): ${this.locked}`);
-      this.unlocked = this.state.unlocked;
-      this.debugLog(`Lock: ${this.accessory.displayName} unlocked (subscribeAugust - state): ${this.unlocked}`);
-      this.open = this.state.open;
-      this.debugLog(`Lock: ${this.accessory.displayName} open (subscribeAugust - state): ${this.open}`);
-      this.closed = this.state.closed;
-      this.debugLog(`Lock: ${this.accessory.displayName} closed (subscribeAugust - state): ${this.closed}`);
-
-      this.errorLog(`Lock: ${this.accessory.displayName} subscribe: ${superStringify(subscribe)}`);*/
-      // Update HomeKit
-      this.parseStatus();
-      this.updateHomeKitCharacteristics();
-    }
+    // Update HomeKit
+    this.parseStatus();
+    this.updateHomeKitCharacteristics();
   }
+
 
   async cacheState() {
     if (this.LockCurrentState === undefined) {
