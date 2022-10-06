@@ -307,12 +307,29 @@ export class LockMechanism {
   }
 
   async subscribeAugust(): Promise<void> {
-    await this.platform.august.subscribe(this.device.lockId, (AugustEvent: any, timestamp: any) => {
-      this.infoLog(superStringify(AugustEvent), superStringify(timestamp));
+    await this.platform.august.subscribe(this.device.lockId, (AugustEvent: any) => {
+      this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${superStringify(AugustEvent)}`);
+      //LockCurrentState
+      if (AugustEvent.status === 'unlocked') {
+        this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNSECURED;
+      } else if (AugustEvent.status === 'locked'){
+        this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
+      } else {
+        this.errorLog(`Lock: ${this.accessory.displayName} status (AugustEvent): ${AugustEvent.status}`);
+        this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNKNOWN;
+      }
+      // Contact Sensor
+      if (AugustEvent.doorState === 'open') {
+        this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+        this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+      } else if (AugustEvent.doorState === 'closed') {
+        this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
+        this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+      } else {
+        this.errorLog(`Lock: ${this.accessory.displayName} doorState (AugustEvent): ${AugustEvent.doorState}`);
+      }
     });
-
     // Update HomeKit
-    this.parseStatus();
     this.updateHomeKitCharacteristics();
   }
 
