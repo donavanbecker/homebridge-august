@@ -205,27 +205,29 @@ export class LockMechanism {
   async refreshStatus(): Promise<void> {
     try {
       // Update Lock Status
-      await this.platform.august.status(this.device.lockId, (AugustEvent: any, timestamp: any) => {
-        this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(AugustEvent), superStringify(timestamp)}`);
-        this.retryCount = AugustEvent.retryCount;
-        this.state = AugustEvent.state;
-        this.locked = AugustEvent.state.locked;
-        this.unlocked = AugustEvent.state.unlocked;
-        this.open = AugustEvent.state.open;
-        this.closed = AugustEvent.state.closed;
-        // Update HomeKit
-        this.parseStatus();
-        this.updateHomeKitCharacteristics();
-      });
-      await this.platform.august.details(this.device.lockId, (AugustEvent: any, timestamp: any) => {
-        this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(AugustEvent), superStringify(timestamp)}`);
-        this.battery = Number(this.lockDetails.battery) * 100;
-        this.doorState = this.lockDetails.LockStatus.doorState;
-        this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
-        // Update HomeKit
-        this.parseStatus();
-        this.updateHomeKitCharacteristics();
-      });
+      const lockStatus = this.platform.august.status(this.device.lockId);
+      this.lockStatus = lockStatus;
+      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(this.lockStatus)}`);
+      this.retryCount = this.lockStatus.retryCount;
+      this.state = this.lockStatus.state;
+      this.locked = this.lockStatus.state.locked;
+      this.unlocked = this.lockStatus.state.unlocked;
+      this.open = this.lockStatus.state.open;
+      this.closed = this.lockStatus.state.closed;
+
+      // Update Lock Details
+      const lockDetails = this.platform.august.details(this.device.lockId);
+      this.lockDetails = lockDetails;
+      this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(this.lockDetails)}`);
+      this.doorState = this.lockDetails.LockStatus.doorState;
+      this.battery = Number(this.lockDetails.battery) * 100;
+      this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
+      this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
+      this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
+
+      // Update HomeKit
+      this.parseStatus();
+      this.updateHomeKitCharacteristics();
     } catch (e: any) {
       this.errorLog(e);
       this.errorLog(`Lock: ${this.accessory.displayName} failed lockStatus (refreshStatus), Error Message: ${superStringify(e.message)}`);
