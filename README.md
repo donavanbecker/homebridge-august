@@ -36,3 +36,4 @@ plugin allows you to access your <a href="https://august.com">August</a> & <a hr
 - August WiFi Smart Lock (Gen 4)
 - Yale Assure Lock 2 (YDR410)
 - Yale Assure Lock SL (YDR256)
+

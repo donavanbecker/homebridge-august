@@ -1,0 +1,241 @@
+{
+  "pluginAlias": "August",
+  "pluginType": "platform",
+  "singular": true,
+  "customUi": true,
+  "headerDisplay": "<p align='center'><img width='100px' src='https://user-images.githubusercontent.com/9875439/102681754-ac2eb800-4189-11eb-8e17-7c47c804484b.png'></p>\n\nThe **August** plugin allows you to control August Devices. \n\nTo get started link your August Account.\n\n1. Input your August E-mail/Phone Number into the August Account Info.\n\n2.Restart Homebrdige to receive an August Validate Code.\n\n3. Input your Validate Code into the August Account Info.\n\n4. Finally Restart Homebridge.",
+  "footerDisplay": "Please raise any issues on our [project page](https://github.com/donavanbecker/homebridge-august/issues).\n\nIf you would like to have other August Devices added to this plugin fill out [Feature Request Form](https://github.com/donavanbecker/homebridge-august/issues/new?assignees=&labels=&template=feature_request.md).",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "title": "Name",
+        "default": "August"
+      },
+      "credentials": {
+        "type": "object",
+        "properties": {
+          "augustId": {
+            "title": "August ID",
+            "type": "string",
+            "x-schema-form": {
+              "type": "email"
+            }
+          },
+          "password": {
+            "title": "August Password",
+            "type": "string",
+            "x-schema-form": {
+              "type": "password"
+            }
+          },
+          "validateCode": {
+            "title": "August  Verification Code",
+            "type": "string",
+            "x-schema-form": {
+              "type": "password"
+            }
+          },
+          "notice": {
+            "title": "Notice",
+            "type": "string",
+            "default": "Keep your tokens a secret!"
+          }
+        },
+        "required": ["augustId", "password", "validateCode", "notice"]
+      },
+      "options": {
+        "type": "object",
+        "properties": {
+          "devices": {
+            "type": "array",
+            "items": {
+              "title": "Devices",
+              "type": "object",
+              "properties": {
+                "lockId": {
+                  "title": "Device ID",
+                  "type": "string",
+                  "placeholder": "TSSQ97FRDMX7TPGU3Z2HWNRDPQXJ9YSM"
+                },
+                "configLockName": {
+                  "title": "Device Name",
+                  "type": "string",
+                  "placeholder": "August",
+                  "condition": {
+                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].lockId);"
+                  }
+                },
+                "hide_device": {
+                  "title": "Hide Device",
+                  "type": "boolean",
+                  "description": "If true then devices that are reported as offline will be shown as off in HomeKit.",
+                  "condition": {
+                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].lockId);"
+                  }
+                },
+                "lock": {
+                  "type": "object",
+                  "properties": {
+                    "hide_contactsensor": {
+                      "title": "Hide Lock's Contact Sensor",
+                      "type": "boolean",
+                      "condition": {
+                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].lockId);"
+                      }
+                    }
+                  }
+                },
+                "firmware": {
+                  "title": "Firmware Override",
+                  "type": "string",
+                  "placeholder": "1.2.8",
+                  "condition": {
+                    "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].lockId);"
+                  }
+                },
+                "refreshRate": {
+                  "title": "Device Refresh Rate",
+                  "type": "number",
+                  "placeholder": 300,
+                  "description": "Indicates the number of seconds between polls of August API.",
+                  "condition": {
+                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].lockId && !model.options.devices[arrayIndices].hide_device);"
+                  }
+                },
+                "external": {
+                  "title": "External Accessory",
+                  "type": "boolean",
+                  "condition": {
+                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].lockId && !model.options.devices[arrayIndices].hide_device);"
+                  }
+                },
+                "logging": {
+                  "title": "Device Logging Override Setting",
+                  "type": "string",
+                  "oneOf": [
+                    {
+                      "title": "Standard Logging",
+                      "enum": ["standard"]
+                    },
+                    {
+                      "title": "No Logging",
+                      "enum": ["none"]
+                    },
+                    {
+                      "title": "Debug Logging",
+                      "enum": ["debug"]
+                    }
+                  ],
+                  "condition": {
+                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].lockId && !model.options.devices[arrayIndices].hide_device);"
+                  }
+                }
+              },
+              "required": ["lockId", "configLockName", "logging"]
+            },
+            "uniqueItems": true
+          },
+          "refreshRate": {
+            "title": "Refresh Rate",
+            "type": "number",
+            "minimum": 30,
+            "placeholder": 360,
+            "description": "Indicates the number of seconds between polls of August API."
+          },
+          "pushRate": {
+            "title": "Push Rate",
+            "type": "number",
+            "placeholder": 1,
+            "description": "Indicates the number of seconds between pushes to August API."
+          },
+          "logging": {
+            "title": "Logging Setting",
+            "type": "string",
+            "oneOf": [
+              {
+                "title": "Standard Logging",
+                "enum": ["standard"]
+              },
+              {
+                "title": "No Logging",
+                "enum": ["none"]
+              },
+              {
+                "title": "Debug Logging",
+                "enum": ["debug"]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "required": ["name", "credentials"]
+  },
+  "layout": [
+    {
+      "type": "fieldset",
+      "title": "August Account Info",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        "credentials.augustId",
+        "credentials.password",
+        "credentials.validateCode"
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Optional August Device Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        {
+          "key": "options.devices",
+          "notitle": false,
+          "type": "tabarray",
+          "title": "{{ value.configLockName || value.lockId || 'New Lock Device' }}",
+          "expandable": true,
+          "expanded": false,
+          "orderable": false,
+          "items": [
+            "options.devices[].configLockName",
+            "options.devices[].lockId",
+            "options.devices[].hide_device",
+            "options.devices[].lock.hide_contactsensor",
+            "options.devices[].firmware",
+            "options.devices[].refreshRate",
+            "options.devices[].external",
+            "options.devices[].logging"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Advanced Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        {
+          "type": "help",
+          "helpvalue": "<h5>Refresh Rate</h5><em class='primary-text'>Refresh Rate indicates the number of seconds between polls of August API.</em>"
+        },
+        {
+          "key": "options.refreshRate",
+          "notitle": true
+        },
+        {
+          "type": "help",
+          "helpvalue": "<h5>Push Rate</h5><em class='primary-text'>Push Rate indicates the number of seconds between pushes to August API.</em>"
+        },
+        {
+          "key": "options.pushRate",
+          "notitle": true
+        },
+        "options.logging"
+      ]
+    }
+  ]
+}
