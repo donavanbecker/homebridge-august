@@ -159,6 +159,7 @@ export class LockMechanism {
       this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNSECURED;
     } else {
       this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNKNOWN;
+      this.refreshStatus();
     }
     // Battery
     if (Number(this.battery)) {
@@ -172,10 +173,16 @@ export class LockMechanism {
       this.debugLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel},` + ` StatusLowBattery: ${this.StatusLowBattery}`);
     }
     // Contact Sensor
-    if (this.doorState === 'open' && this.open) {
+    if (this.open) {
       this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
       this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-    } else if (this.doorState === 'closed' && this.closed) {
+    } else if (this.closed) {
+      this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
+      this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+    } else if (this.doorState === 'open') {
+      this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+      this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+    } else if (this.doorState === 'closed') {
       this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
       this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
     } else {
@@ -210,20 +217,15 @@ export class LockMechanism {
         this.parseStatus();
         this.updateHomeKitCharacteristics();
       });
-      try {
-        await this.platform.august.details(this.device.lockId, (AugustEvent: any, timestamp: any) => {
-          this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(AugustEvent), superStringify(timestamp)}`);
-          this.battery = Number(this.lockDetails.battery) * 100;
-          this.doorState = this.lockDetails.LockStatus.doorState;
-          this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
-          // Update HomeKit
-          this.parseStatus();
-          this.updateHomeKitCharacteristics();
-        });
-      } catch (e: any) {
-        this.errorLog(e);
-        this.errorLog(`Lock: ${this.accessory.displayName} failed lockDetails (refreshStatus), Error Message: ${superStringify(e.message)}`);
-      }
+      await this.platform.august.details(this.device.lockId, (AugustEvent: any, timestamp: any) => {
+        this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(AugustEvent), superStringify(timestamp)}`);
+        this.battery = Number(this.lockDetails.battery) * 100;
+        this.doorState = this.lockDetails.LockStatus.doorState;
+        this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
+        // Update HomeKit
+        this.parseStatus();
+        this.updateHomeKitCharacteristics();
+      });
     } catch (e: any) {
       this.errorLog(e);
       this.errorLog(`Lock: ${this.accessory.displayName} failed lockStatus (refreshStatus), Error Message: ${superStringify(e.message)}`);
@@ -309,24 +311,21 @@ export class LockMechanism {
     await this.platform.august.subscribe(this.device.lockId, (AugustEvent: any, timestamp: any) => {
       this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${superStringify(AugustEvent), superStringify(timestamp)}`);
       //LockCurrentState
-      if (AugustEvent.state.unlocked || AugustEvent.status === 'unlocked') {
+      if (AugustEvent.state.unlocked) {
         this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNSECURED;
-      } else if (AugustEvent.state.locked || AugustEvent.status === 'locked'){
+      } else if (AugustEvent.state.locked) {
         this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
       } else {
-        this.errorLog(`Lock: ${this.accessory.displayName} status (AugustEvent): ${AugustEvent.status}`);
-        this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNKNOWN;
         this.refreshStatus();
       }
       // Contact Sensor
-      if (AugustEvent.state.open || AugustEvent.doorState === 'open') {
+      if (AugustEvent.state.open) {
         this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
         this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-      } else if (AugustEvent.state.closed || AugustEvent.doorState === 'closed') {
+      } else if (AugustEvent.state.closed) {
         this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
         this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
       } else {
-        this.errorLog(`Lock: ${this.accessory.displayName} doorState (AugustEvent): ${AugustEvent.doorState}`);
         this.refreshStatus();
       }
       // Update HomeKit
