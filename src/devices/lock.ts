@@ -197,41 +197,36 @@ export class LockMechanism {
    */
   async refreshStatus(): Promise<void> {
     try {
-      const august = this.platform.august;
-
       // Update Lock Status
-      const lockStatus = await august.status(this.device.lockId);
-      this.lockStatus = lockStatus;
-      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(this.lockStatus)}`);
-      this.retryCount = this.lockStatus.retryCount;
-      this.debugLog(`Lock: ${this.accessory.displayName} retryCount (lockStatus): ${this.retryCount}`);
-      this.state = this.lockStatus.state;
-      this.debugLog(`Lock: ${this.accessory.displayName} state (lockStatus): ${superStringify(this.state)}`);
-      this.locked = this.lockStatus.state.locked;
-      this.debugLog(`Lock: ${this.accessory.displayName} locked (lockStatus): ${this.locked}`);
-      this.unlocked = this.lockStatus.state.unlocked;
-      this.debugLog(`Lock: ${this.accessory.displayName} unlocked (lockStatus): ${this.unlocked}`);
-      this.open = this.lockStatus.state.open;
-      this.debugLog(`Lock: ${this.accessory.displayName} open (lockStatus): ${this.open}`);
-      this.closed = this.lockStatus.state.closed;
-      this.debugLog(`Lock: ${this.accessory.displayName} closed (lockStatus): ${this.closed}`);
-
-      // Update Lock Details
-      const lockDetails = await august.details(this.device.lockId);
-      this.lockDetails = lockDetails;
-      this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(this.lockDetails)}`);
-      this.battery = Number(this.lockDetails.battery) * 100;
-      this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
-      this.doorState = this.lockDetails.LockStatus.doorState;
-      this.debugLog(`Lock: ${this.accessory.displayName} doorState (lockDetails): ${this.doorState}`);
-      this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
-      this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
-
-      // Update HomeKit
-      this.parseStatus();
-      this.updateHomeKitCharacteristics();
+      await this.platform.august.status(this.device.lockId, (AugustEvent: any, timestamp: any) => {
+        this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(AugustEvent), superStringify(timestamp)}`);
+        this.retryCount = AugustEvent.retryCount;
+        this.state = AugustEvent.state;
+        this.locked = AugustEvent.state.locked;
+        this.unlocked = AugustEvent.state.unlocked;
+        this.open = AugustEvent.state.open;
+        this.closed = AugustEvent.state.closed;
+        // Update HomeKit
+        this.parseStatus();
+        this.updateHomeKitCharacteristics();
+      });
+      try {
+        await this.platform.august.details(this.device.lockId, (AugustEvent: any, timestamp: any) => {
+          this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(AugustEvent), superStringify(timestamp)}`);
+          this.battery = Number(this.lockDetails.battery) * 100;
+          this.doorState = this.lockDetails.LockStatus.doorState;
+          this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
+          // Update HomeKit
+          this.parseStatus();
+          this.updateHomeKitCharacteristics();
+        });
+      } catch (e: any) {
+        this.errorLog(e);
+        this.errorLog(`Lock: ${this.accessory.displayName} failed lockDetails (refreshStatus), Error Message: ${superStringify(e.message)}`);
+      }
     } catch (e: any) {
       this.errorLog(e);
+      this.errorLog(`Lock: ${this.accessory.displayName} failed lockStatus (refreshStatus), Error Message: ${superStringify(e.message)}`);
     }
   }
 
@@ -255,6 +250,7 @@ export class LockMechanism {
       }
     } catch (e: any) {
       this.errorLog(e);
+      this.errorLog(`Lock: ${this.accessory.displayName} failed pushChanges, Error Message: ${superStringify(e.message)}`);
     }
   }
 
