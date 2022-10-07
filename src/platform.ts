@@ -156,18 +156,20 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
       // August Locks
       const devices = await this.august.details();
+      let deviceLists: any[];
       if (devices.length !== 0) {
-        this.infoLog(`Total August Locks Found: ${devices.length}`);
+        deviceLists = devices;
+        this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
       } else {
-        this.infoLog(`Total August Locks Found: ${devices.length}`);
+        deviceLists = [devices];
+        this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
       }
-      const deviceLists = devices;
       if (!this.config.options?.devices) {
         if (this.platformLogging.includes('debug')) {
           this.debugLog(`August Platform Config Not Set: ${superStringify(this.config.options?.devices)}`);
         }
         this.errorLog(`COPY THIS LOG: ${superStringify(deviceLists)}`);
-        //const devices = deviceLists.map((v: any) => v);
+        const devices = deviceLists.map((v: any) => v);
         for (const device of devices) {
           if (device.configDeviceName) {
             device.deviceName = device.configDeviceName;
