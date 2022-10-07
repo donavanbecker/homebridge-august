@@ -162,16 +162,14 @@ export class LockMechanism {
       this.refreshStatus();
     }
     // Battery
-    if (Number(this.battery)) {
-      this.BatteryLevel = this.battery.toFixed();
-      this.batteryService.getCharacteristic(this.platform.Characteristic.BatteryLevel).updateValue(this.BatteryLevel);
-      if (this.BatteryLevel < 15) {
-        this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
-      } else {
-        this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
-      }
-      this.debugLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel},` + ` StatusLowBattery: ${this.StatusLowBattery}`);
+    this.BatteryLevel = Number(this.battery);
+    this.batteryService.getCharacteristic(this.platform.Characteristic.BatteryLevel).updateValue(this.BatteryLevel);
+    if (this.BatteryLevel < 15) {
+      this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
+    } else {
+      this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
     }
+    this.debugLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel},` + ` StatusLowBattery: ${this.StatusLowBattery}`);
     // Contact Sensor
     if (this.open) {
       this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
@@ -218,7 +216,7 @@ export class LockMechanism {
       const lockDetails = await this.platform.august.details(this.device.lockId);
       this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
       this.doorState = lockDetails.LockStatus.doorState;
-      this.battery = Number(lockDetails.battery) * 100;
+      this.battery = (Number(lockDetails.battery) * 100).toFixed();
       this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
       this.currentFirmwareVersion = lockDetails.currentFirmwareVersion;
       this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
@@ -345,7 +343,7 @@ export class LockMechanism {
       this.ContactSensorState = this.accessory.context.ContactSensorState | this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
     }
     if (this.BatteryLevel === undefined) {
-      this.BatteryLevel = this.accessory.context.BatteryLevel | 100;
+      this.BatteryLevel = this.accessory.context.BatteryLevel || 100;
     }
     if (this.StatusLowBattery === undefined) {
       if (this.BatteryLevel < 15) {
