@@ -205,24 +205,22 @@ export class LockMechanism {
   async refreshStatus(): Promise<void> {
     try {
       // Update Lock Status
-      const lockStatus = this.platform.august.status(this.device.lockId);
-      this.lockStatus = lockStatus;
-      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(this.lockStatus)}`);
-      this.retryCount = this.lockStatus.retryCount;
-      this.state = this.lockStatus.state;
-      this.locked = this.lockStatus.state.locked;
-      this.unlocked = this.lockStatus.state.unlocked;
-      this.open = this.lockStatus.state.open;
-      this.closed = this.lockStatus.state.closed;
+      const lockStatus = await this.platform.august.status(this.device.lockId);
+      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(lockStatus)}`);
+      this.retryCount = lockStatus.retryCount;
+      this.state = lockStatus.state;
+      this.locked = lockStatus.state.locked;
+      this.unlocked = lockStatus.state.unlocked;
+      this.open = lockStatus.state.open;
+      this.closed = lockStatus.state.closed;
 
       // Update Lock Details
-      const lockDetails = this.platform.august.details(this.device.lockId);
-      this.lockDetails = lockDetails;
-      this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(this.lockDetails)}`);
-      this.doorState = this.lockDetails.LockStatus.doorState;
-      this.battery = Number(this.lockDetails.battery) * 100;
+      const lockDetails = await this.platform.august.details(this.device.lockId);
+      this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
+      this.doorState = lockDetails.LockStatus.doorState;
+      this.battery = Number(lockDetails.battery) * 100;
       this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
-      this.currentFirmwareVersion = this.lockDetails.currentFirmwareVersion;
+      this.currentFirmwareVersion = lockDetails.currentFirmwareVersion;
       this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
 
       // Update HomeKit
