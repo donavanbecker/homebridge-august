@@ -146,12 +146,12 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       };
       this.august = new August(this.account);
       this.debugLog(superStringify(this.august));
-      // If this is the first time you're using this installId, you need to authorize and validate:
-      if (!this.config.credentials?.validateCode) {
-        this.august.authorize();
-      } else {
+      if (this.config.credentials?.validateCode) {
       // A 6-digit code will be sent to your email or phone (depending on what you used for your augustId). Send the code back:
         this.august.validate(this.config.credentials.validateCode);
+      } else {
+        // If this is the first time you're using this installId, you need to authorize and validate:
+        this.august.authorize();
       }
 
       // August Locks

@@ -309,20 +309,22 @@ export class LockMechanism {
   async subscribeAugust(): Promise<void> {
     await this.platform.august.subscribe(this.device.lockId, (AugustEvent: any, timestamp: any) => {
       this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${superStringify(AugustEvent), superStringify(timestamp)}`);
+      this.infoLog(`Lock: ${this.accessory.displayName} AugustEvent (state): ${superStringify(AugustEvent.state)}`);
+      this.infoLog(`Lock: ${this.accessory.displayName} AugustEvent (status): ${superStringify(AugustEvent.status)}`);
       //LockCurrentState
-      if (AugustEvent.status === 'unlocked') {
+      if (AugustEvent.status === 'unlocked' || AugustEvent.state.unlocked) {
         this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNSECURED;
-      } else if (AugustEvent.status === 'locked'){
+      } else if (AugustEvent.status === 'locked' || AugustEvent.state.locked){
         this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} status (AugustEvent): ${AugustEvent.status}`);
         this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNKNOWN;
       }
       // Contact Sensor
-      if (AugustEvent.doorState === 'open') {
+      if (AugustEvent.doorState === 'open' || AugustEvent.state.open) {
         this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
         this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-      } else if (AugustEvent.doorState === 'closed') {
+      } else if (AugustEvent.doorState === 'closed' || AugustEvent.state.closed) {
         this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
         this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
       } else {
