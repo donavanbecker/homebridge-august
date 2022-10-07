@@ -157,7 +157,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       // August Locks
       const devices = await this.august.details();
       let deviceLists: any[];
-      if (devices.length !== 0) {
+      if (devices.length < 1) {
         deviceLists = devices;
         this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
       } else {
@@ -168,7 +168,6 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         if (this.platformLogging.includes('debug')) {
           this.debugLog(`August Platform Config Not Set: ${superStringify(this.config.options?.devices)}`);
         }
-        this.errorLog(`COPY THIS LOG: ${superStringify(deviceLists)}`);
         const devices = deviceLists.map((v: any) => v);
         for (const device of devices) {
           if (device.configDeviceName) {

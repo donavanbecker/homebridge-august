@@ -303,6 +303,12 @@ export class LockMechanism {
     this.LockTargetState = value;
     this.accessory.context.LockTargetState = this.LockTargetState;
     this.doLockUpdate.next();
+    if (this.LockCurrentState === this.platform.Characteristic.LockCurrentState.UNSECURED) {
+      this.debugLog(`Lock: ${this.accessory.displayName} Unlocked`);
+    }
+    if (this.LockCurrentState === this.platform.Characteristic.LockCurrentState.SECURED) {
+      this.debugLog(`Lock: ${this.accessory.displayName} Locked`);
+    }
   }
 
   async subscribeAugust(): Promise<void> {
