@@ -114,6 +114,7 @@ export interface devicesConfig extends device {
   lockId: string;
   lock: lock;
   hide_device?: boolean;
+  external?: boolean;
   logging?: string;
   refreshRate?: number;
   firmware?: string;

@@ -257,7 +257,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.debugLog(`${device.LockName} (${device.lockId}) uuid:  ${accessory.UUID}`);
 
       // link the accessory to your platform
-      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      this.externalOrPlatform(device, accessory);
       this.accessories.push(accessory);
     } else {
       if (this.platformLogging?.includes('debug')) {
@@ -276,6 +276,20 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.debugLog(`Device: ${device.LockName} Plugin or Device Disabled`);
     }
     return this.registeringDevice;
+  }
+
+  public async externalOrPlatform(device: device & devicesConfig, accessory: PlatformAccessory) {
+    this.debugLog(`${accessory.displayName} External Accessory Mode: ${device.external}`);
+    if (device.external) {
+      this.warnLog(`${accessory.displayName} External Accessory Mode`);
+      this.externalAccessory(accessory);
+    } else {
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    }
+  }
+
+  public async externalAccessory(accessory: PlatformAccessory) {
+    this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
   }
 
   public unregisterPlatformAccessories(existingAccessory: PlatformAccessory, device: device & devicesConfig) {

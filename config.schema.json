@@ -104,6 +104,13 @@
                     "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].lockId && !model.options.devices[arrayIndices].hide_device);"
                   }
                 },
+                "external": {
+                  "title": "External Accessory",
+                  "type": "boolean",
+                  "condition": {
+                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].lockId && !model.options.devices[arrayIndices].hide_device);"
+                  }
+                },
                 "logging": {
                   "title": "Device Logging Override Setting",
                   "type": "string",
@@ -199,6 +206,7 @@
             "options.devices[].lock.hide_contactsensor",
             "options.devices[].firmware",
             "options.devices[].refreshRate",
+            "options.devices[].external",
             "options.devices[].logging"
           ]
         }
