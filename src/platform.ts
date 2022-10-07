@@ -112,8 +112,8 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     }
 
     if (!this.config.options.refreshRate) {
-      // default 300 seconds (5 minutes)
-      this.config.options!.refreshRate! = 300;
+      // default 1800 seconds (30 minutes)
+      this.config.options!.refreshRate! = 1800;
       if (this.platformLogging?.includes('debug')) {
         this.debugLog('Using Default Refresh Rate (5 minutes).');
       }
