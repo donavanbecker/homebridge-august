@@ -65,7 +65,7 @@ export class LockMechanism {
     // set accessory information
     accessory
       .getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'August')
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'August Home Inc.')
       .setCharacteristic(this.platform.Characteristic.Model, accessory.context.model)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.serialnumber)
       .setCharacteristic(this.platform.Characteristic.FirmwareRevision, accessory.context.currentFirmwareVersion)

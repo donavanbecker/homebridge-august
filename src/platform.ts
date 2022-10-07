@@ -271,7 +271,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.debugLog(`Device: ${device.LockName} Enabled`);
     } else {
       this.registeringDevice = false;
-      this.debugLog(`Device: ${device.LockName} Plugin Disabled`);
+      this.debugLog(`Device: ${device.LockName} Plugin or Device Disabled`);
     }
     return this.registeringDevice;
   }
