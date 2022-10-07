@@ -167,7 +167,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
           this.debugLog(`August Platform Config Not Set: ${superStringify(this.config.options?.devices)}`);
         }
         this.errorLog(`COPY THIS LOG: ${superStringify(deviceLists)}`);
-        const devices = deviceLists.map((v: any) => v);
+        //const devices = deviceLists.map((v: any) => v);
         for (const device of devices) {
           if (device.configDeviceName) {
             device.deviceName = device.configDeviceName;
