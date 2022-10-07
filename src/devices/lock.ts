@@ -240,15 +240,16 @@ export class LockMechanism {
    */
   async pushChanges(): Promise<void> {
     try {
-      const august = this.platform.august;
       if (this.LockTargetState === this.platform.Characteristic.LockTargetState.UNSECURED) {
-        const lockStatus = await august.unlock(this.device.lockId);
-        this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${superStringify(lockStatus)}`);
-        this.infoLog(`Lock: ${this.accessory.displayName} Sending request to August API: Unlock (${this.LockTargetState})`);
-      } else if (this.LockTargetState === this.platform.Characteristic.LockTargetState.SECURED){
-        const lockStatus = await august.lock(this.device.lockId);
-        this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges): ${superStringify(lockStatus)}`);
-        this.infoLog(`Lock: ${this.accessory.displayName} Sending request to August API: Lock (${this.LockTargetState})`);
+        await this.platform.august.unlock(this.device.lockId, (AugustEvent: any, timestamp: any) => {
+          this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent (pushChanges): ${superStringify(AugustEvent), superStringify(timestamp)}`);
+          this.infoLog(`Lock: ${this.accessory.displayName} Sending request to August API: Unlock (${this.LockTargetState})`);
+        });
+      } else if (this.LockTargetState === this.platform.Characteristic.LockTargetState.SECURED) {
+        await this.platform.august.lock(this.device.lockId, (AugustEvent: any, timestamp: any) => {
+          this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent (pushChanges): ${superStringify(AugustEvent), superStringify(timestamp)}`);
+          this.infoLog(`Lock: ${this.accessory.displayName} Sending request to August API: Lock (${this.LockTargetState})`);
+        });
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges) failed, this.LockTargetState: ${this.LockTargetState}`);
       }
@@ -287,6 +288,7 @@ export class LockMechanism {
     if (this.StatusLowBattery === undefined) {
       this.debugLog(`Lock: ${this.accessory.displayName} StatusLowBattery: ${this.StatusLowBattery}`);
     } else {
+      this.accessory.context.StatusLowBattery = this.StatusLowBattery;
       this.batteryService.updateCharacteristic(this.platform.Characteristic.StatusLowBattery, this.StatusLowBattery);
       this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic StatusLowBattery: ${this.StatusLowBattery}`);
     }
@@ -303,6 +305,7 @@ export class LockMechanism {
   async setLockTargetState(value: CharacteristicValue): Promise<void> {
     this.debugLog(`Lock: ${this.accessory.displayName} Set LockTargetState: ${value}`);
     this.LockTargetState = value;
+    this.accessory.context.LockTargetState = this.LockTargetState;
     this.doLockUpdate.next();
   }
 
