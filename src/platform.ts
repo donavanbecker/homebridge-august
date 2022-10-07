@@ -101,14 +101,14 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     if (this.config.options.logging) {
       platformConfig['logging'] = this.config.options.logging;
     }
-    if (this.config.options.logging) {
+    if (this.config.options.logging && this.config.options.refreshRate) {
       platformConfig['refreshRate'] = this.config.options.refreshRate;
     }
-    if (this.config.options.logging) {
+    if (this.config.options.logging && this.config.options.pushRate) {
       platformConfig['pushRate'] = this.config.options.pushRate;
     }
     if (Object.entries(platformConfig).length !== 0) {
-      this.warnLog(`Platform Config: ${superStringify(platformConfig)}`);
+      this.infoLog(`Platform Config: ${superStringify(platformConfig)}`);
     }
 
     if (!this.config.options.refreshRate) {
@@ -163,7 +163,10 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       }
       const deviceLists = devices;
       if (!this.config.options?.devices) {
-        this.debugLog(`August Platform Config Not Set: ${superStringify(this.config.options?.devices)}`);
+        if (this.platformLogging.includes('debug')) {
+          this.debugLog(`August Platform Config Not Set: ${superStringify(this.config.options?.devices)}`);
+        }
+        this.errorLog(`COPY THIS LOG: ${deviceLists}`);
         const devices = deviceLists.map((v: any) => v);
         for (const device of devices) {
           if (device.configDeviceName) {
@@ -173,7 +176,9 @@ export class AugustPlatform implements DynamicPlatformPlugin {
           this.createLock(device);
         }
       } else if (this.config.options.devices) {
-        this.warnLog(`August Platform Config Set: ${superStringify(this.config.options?.devices)}`);
+        if (this.platformLogging.includes('debug')) {
+          this.warnLog(`August Platform Config Set: ${superStringify(this.config.options?.devices)}`);
+        }
         const deviceConfigs = this.config.options?.devices;
 
         const mergeBylockId = (a1: { lockId: string }[], a2: any[]) =>
