@@ -190,8 +190,6 @@ export class AugustPlatform implements DynamicPlatformPlugin {
             ),
             ...itm,
           }));
-
-        this.infoLog(superStringify(deviceLists));
         const devices = mergeBylockId(deviceLists, deviceConfigs);
         this.debugLog(`August Lock(s): ${superStringify(devices)}`);
         for (const device of devices) {
