@@ -41,7 +41,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.verifyConfig();
       this.debugLog('Config OK');
     } catch (e: any) {
-      this.errorLog(e);
+      this.errorLog(`Verify Config: ${e}`);
       return;
     }
 
@@ -55,7 +55,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       try {
         this.discoverDevices();
       } catch (e: any) {
-        this.errorLog(e);
+        this.errorLog(`Discover Devices: ${e}`);
       }
     });
   }
@@ -203,7 +203,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         this.errorLog('August ID & Password Supplied, Issue with Auth.');
       }
     } catch (e: any) {
-      this.errorLog(e);
+      this.errorLog(`Discover Devices: ${e}`);
     }
   }
 
