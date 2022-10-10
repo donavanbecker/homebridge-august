@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Version 1.0.5](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.0.5) (2022-10-09)
+
+## What's Changes
+- Fixed issue with RetryCount showing false `LockCurrentState` of `JAMMED`.
+
+**Full Changelog**: https://github.com/donavanbecker/homebridge-august/compare/v1.0.4...v1.0.5
+
 ## [Version 1.0.4](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.0.4) (2022-10-07)
 
 ## What's Changes
