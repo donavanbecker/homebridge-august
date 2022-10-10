@@ -33,7 +33,14 @@ plugin allows you to access your <a href="https://august.com">August</a> & <a hr
 
 ## Supported August Devices
 
+- August Smart lock (AUG-SL04-C03-N04)
+- August Smart Lock Pro 3rd Gee (AUG-SL03-C02-G03-C)
 - August WiFi Smart Lock (Gen 4)
+- Yale Assure Lock (AUG-MD01)
 - Yale Assure Lock 2 (YDR410)
 - Yale Assure Lock SL (YDR256)
+
+## Thanks
+
+Thank you to [hufftheweevil](https://github.com/hufftheweevil) for the [august-api](https://github.com/hufftheweevil/august-api) module.
 
