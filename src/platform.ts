@@ -257,11 +257,11 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   }
 
   public async externalOrPlatform(device: device & devicesConfig, accessory: PlatformAccessory) {
-    this.debugLog(`${accessory.displayName} External Accessory Mode: ${device.external}`);
     if (device.external) {
-      this.warnLog(`${accessory.displayName} External Accessory Mode`);
+      this.infoLog(`${accessory.displayName} External Accessory Mode: ${device.external}`);
       this.externalAccessory(accessory);
     } else {
+      this.debugLog(`${accessory.displayName} External Accessory Mode: ${device.external}`);
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
     }
   }

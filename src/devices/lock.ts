@@ -383,7 +383,7 @@ export class LockMechanism {
       config['refreshRate'] = device.refreshRate;
     }
     if (Object.entries(config).length !== 0) {
-      this.warnLog(`Lock: ${this.accessory.displayName} Config: ${superStringify(config)}`);
+      this.infoLog(`Lock: ${this.accessory.displayName} Config: ${superStringify(config)}`);
     }
   }
 
