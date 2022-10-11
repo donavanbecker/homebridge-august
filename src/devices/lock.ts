@@ -203,24 +203,32 @@ export class LockMechanism {
       // Update Lock Status
       const lockStatus = await this.platform.august.status(this.device.lockId);
       this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(lockStatus)}`);
-      this.retryCount = lockStatus.retryCount;
-      this.state = lockStatus.state;
-      this.locked = lockStatus.state.locked;
-      this.unlocked = lockStatus.state.unlocked;
-      if (!this.device.lock?.hide_contactsensor) {
-        this.open = lockStatus.state.open;
-        this.closed = lockStatus.state.closed;
+      if (lockStatus) {
+        this.retryCount = lockStatus.retryCount;
+        this.state = lockStatus.state;
+        this.locked = lockStatus.state.locked;
+        this.unlocked = lockStatus.state.unlocked;
+        if (!this.device.lock?.hide_contactsensor) {
+          this.open = lockStatus.state.open;
+          this.closed = lockStatus.state.closed;
+        }
+      } else {
+        this.debugErrorLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(lockStatus)}`);
       }
 
       // Update Lock Details
       const lockDetails = await this.platform.august.details(this.device.lockId);
-      this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
-      this.battery = (Number(lockDetails.battery) * 100).toFixed();
-      this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
-      this.currentFirmwareVersion = lockDetails.currentFirmwareVersion;
-      this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
-      if (!this.device.lock?.hide_contactsensor) {
-        this.doorState = lockDetails.LockStatus.doorState;
+      if (lockDetails) {
+        this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
+        this.battery = (Number(lockDetails.battery) * 100).toFixed();
+        this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
+        this.currentFirmwareVersion = lockDetails.currentFirmwareVersion;
+        this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
+        if (!this.device.lock?.hide_contactsensor) {
+          this.doorState = lockDetails.LockStatus.doorState;
+        }
+      }else {
+        this.debugErrorLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
       }
 
       // Update HomeKit
