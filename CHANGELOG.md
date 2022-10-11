@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Beta - Version 1.0.6](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.0.6) (2022-10-XX)
+
+## What's Changes
+- Fixed issue when DoorSense is not configured/in use. #[21](https://github.com/donavanbecker/homebridge-august/issues/21)
+- Housekeeping and updated dependencies.
+
+**Full Changelog**: https://github.com/donavanbecker/homebridge-august/compare/v1.0.5...v1.0.6
+
 ## [Version 1.0.5](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.0.5) (2022-10-09)
 
 ## What's Changes

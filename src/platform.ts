@@ -60,26 +60,6 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     });
   }
 
-  logs() {
-    this.debugMode = process.argv.includes('-D') || process.argv.includes('--debug');
-    if (this.config.options?.logging === 'debug' || this.config.options?.logging === 'standard' || this.config.options?.logging === 'none') {
-      this.platformLogging = this.config.options!.logging;
-      if (this.platformLogging.includes('debug')) {
-        this.log.warn(`Using Config Logging: ${this.platformLogging}`);
-      }
-    } else if (this.debugMode) {
-      this.platformLogging = 'debugMode';
-      if (this.platformLogging?.includes('debug')) {
-        this.log.warn(`Using ${this.platformLogging} Logging`);
-      }
-    } else {
-      this.platformLogging = 'standard';
-      if (this.platformLogging?.includes('debug')) {
-        this.log.warn(`Using ${this.platformLogging} Logging`);
-      }
-    }
-  }
-
   /**
    * This function is invoked when homebridge restores cached accessories from disk at startup.
    * It should be used to setup event handlers for characteristics and update respective values.
@@ -296,6 +276,26 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     this.warnLog(`Removing existing accessory from cache: ${device.LockName}`);
   }
 
+  logs() {
+    this.debugMode = process.argv.includes('-D') || process.argv.includes('--debug');
+    if (this.config.options?.logging === 'debug' || this.config.options?.logging === 'standard' || this.config.options?.logging === 'none') {
+      this.platformLogging = this.config.options!.logging;
+      if (this.platformLogging.includes('debug')) {
+        this.debugWarnLog(`Using Config Logging: ${this.platformLogging}`);
+      }
+    } else if (this.debugMode) {
+      this.platformLogging = 'debugMode';
+      if (this.platformLogging?.includes('debug')) {
+        this.debugWarnLog(`Using ${this.platformLogging} Logging`);
+      }
+    } else {
+      this.platformLogging = 'standard';
+      if (this.platformLogging?.includes('debug')) {
+        this.debugWarnLog(`Using ${this.platformLogging} Logging`);
+      }
+    }
+  }
+
   /**
    * If device level logging is turned on, log to log.warn
    * Otherwise send debug logs to log.debug
@@ -312,9 +312,25 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     }
   }
 
+  debugWarnLog(...log: any[]): void {
+    if (this.enablingPlatfromLogging()) {
+      if (this.platformLogging?.includes('debug')) {
+        this.log.warn('[DEBUG]', String(...log));
+      }
+    }
+  }
+
   errorLog(...log: any[]) {
     if (this.enablingPlatfromLogging()) {
       this.log.error(String(...log));
+    }
+  }
+
+  debugErrorLog(...log: any[]): void {
+    if (this.enablingPlatfromLogging()) {
+      if (this.platformLogging?.includes('debug')) {
+        this.log.error('[DEBUG]', String(...log));
+      }
     }
   }
 

@@ -24,20 +24,16 @@ export class LockMechanism {
   ContactSensorState!: CharacteristicValue;
 
   // Lock Status
-  lockStatus: any;
-  lockState: any;
   retryCount: any;
-  status: any;
   state: any;
   locked!: boolean;
   unlocked!: boolean;
-  open!: boolean;
-  closed!: boolean;
+  open?: boolean;
+  closed?: boolean;
 
   // Lock Details
-  lockDetails: any;
   battery: any;
-  doorState: any;
+  doorState?: any;
   currentFirmwareVersion: any;
 
   // Config
@@ -171,20 +167,22 @@ export class LockMechanism {
     }
     this.debugLog(`Lock: ${this.accessory.displayName} BatteryLevel: ${this.BatteryLevel},` + ` StatusLowBattery: ${this.StatusLowBattery}`);
     // Contact Sensor
-    if (this.open) {
-      this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
-      this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-    } else if (this.closed) {
-      this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
-      this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-    } else if (this.doorState === 'open') {
-      this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
-      this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-    } else if (this.doorState === 'closed') {
-      this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
-      this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-    } else {
-      this.errorLog(`Lock: ${this.accessory.displayName} doorState: ${this.doorState}, closed: ${this.closed}, open: ${this.open}`);
+    if (!this.device.lock?.hide_contactsensor) {
+      if (this.open) {
+        this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+        this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+      } else if (this.closed) {
+        this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
+        this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+      } else if (this.doorState === 'open') {
+        this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+        this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+      } else if (this.doorState === 'closed') {
+        this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
+        this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+      } else {
+        this.errorLog(`Lock: ${this.accessory.displayName} doorState: ${this.doorState}, closed: ${this.closed}, open: ${this.open}`);
+      }
     }
     // Update Firmware
     if (this.currentFirmwareVersion !== this.accessory.context.currentFirmwareVersion) {
@@ -209,17 +207,21 @@ export class LockMechanism {
       this.state = lockStatus.state;
       this.locked = lockStatus.state.locked;
       this.unlocked = lockStatus.state.unlocked;
-      this.open = lockStatus.state.open;
-      this.closed = lockStatus.state.closed;
+      if (!this.device.lock?.hide_contactsensor) {
+        this.open = lockStatus.state.open;
+        this.closed = lockStatus.state.closed;
+      }
 
       // Update Lock Details
       const lockDetails = await this.platform.august.details(this.device.lockId);
       this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
-      this.doorState = lockDetails.LockStatus.doorState;
       this.battery = (Number(lockDetails.battery) * 100).toFixed();
       this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
       this.currentFirmwareVersion = lockDetails.currentFirmwareVersion;
       this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
+      if (!this.device.lock?.hide_contactsensor) {
+        this.doorState = lockDetails.LockStatus.doorState;
+      }
 
       // Update HomeKit
       this.parseStatus();
@@ -288,13 +290,16 @@ export class LockMechanism {
       this.batteryService.updateCharacteristic(this.platform.Characteristic.StatusLowBattery, this.StatusLowBattery);
       this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic StatusLowBattery: ${this.StatusLowBattery}`);
     }
+
     // Contact Sensor
-    if (this.ContactSensorState === undefined) {
-      this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-    } else {
-      this.accessory.context.ContactSensorState = this.ContactSensorState;
-      this.contactSensorService?.updateCharacteristic(this.platform.Characteristic.ContactSensorState, this.ContactSensorState);
-      this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic ContactSensorState: ${this.ContactSensorState}`);
+    if (!this.device.lock?.hide_contactsensor) {
+      if (this.ContactSensorState === undefined) {
+        this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+      } else {
+        this.accessory.context.ContactSensorState = this.ContactSensorState;
+        this.contactSensorService?.updateCharacteristic(this.platform.Characteristic.ContactSensorState, this.ContactSensorState);
+        this.debugLog(`Lock: ${this.accessory.displayName} updateCharacteristic ContactSensorState: ${this.ContactSensorState}`);
+      }
     }
   }
 
@@ -322,15 +327,18 @@ export class LockMechanism {
       } else {
         this.refreshStatus();
       }
+
       // Contact Sensor
-      if (AugustEvent.state.open) {
-        this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
-        this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-      } else if (AugustEvent.state.closed) {
-        this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
-        this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
-      } else {
-        this.refreshStatus();
+      if (!this.device.lock?.hide_contactsensor) {
+        if (AugustEvent.state.open) {
+          this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+          this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+        } else if (AugustEvent.state.closed) {
+          this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
+          this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+        } else {
+          this.refreshStatus();
+        }
       }
       // Update HomeKit
       this.updateHomeKitCharacteristics();
@@ -345,8 +353,11 @@ export class LockMechanism {
     if (this.LockTargetState === undefined) {
       this.LockTargetState = this.accessory.context.LockTargetState | this.platform.Characteristic.LockTargetState.SECURED;
     }
-    if (this.ContactSensorState === undefined) {
-      this.ContactSensorState = this.accessory.context.ContactSensorState | this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+    // Contact Sensor
+    if (!this.device.lock?.hide_contactsensor) {
+      if (this.ContactSensorState === undefined) {
+        this.ContactSensorState = this.accessory.context.ContactSensorState | this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+      }
     }
     if (this.BatteryLevel === undefined) {
       this.BatteryLevel = this.accessory.context.BatteryLevel || 100;
@@ -389,16 +400,16 @@ export class LockMechanism {
   async logs(device: device & devicesConfig): Promise<void> {
     if (this.platform.debugMode) {
       this.deviceLogging = this.accessory.context.logging = 'debugMode';
-      this.debugLog(`Lock: ${this.accessory.displayName} Using Debug Mode Logging: ${this.deviceLogging}`);
+      this.debugWarnLog(`Lock: ${this.accessory.displayName} Using Debug Mode Logging: ${this.deviceLogging}`);
     } else if (device.logging) {
       this.deviceLogging = this.accessory.context.logging = device.logging;
-      this.debugLog(`Lock: ${this.accessory.displayName} Using Device Config Logging: ${this.deviceLogging}`);
+      this.debugWarnLog(`Lock: ${this.accessory.displayName} Using Device Config Logging: ${this.deviceLogging}`);
     } else if (this.platform.config.options?.logging) {
       this.deviceLogging = this.accessory.context.logging = this.platform.config.options?.logging;
-      this.debugLog(`Lock: ${this.accessory.displayName} Using Platform Config Logging: ${this.deviceLogging}`);
+      this.debugWarnLog(`Lock: ${this.accessory.displayName} Using Platform Config Logging: ${this.deviceLogging}`);
     } else {
       this.deviceLogging = this.accessory.context.logging = 'standard';
-      this.debugLog(`Lock: ${this.accessory.displayName} Logging Not Set, Using: ${this.deviceLogging}`);
+      this.debugWarnLog(`Lock: ${this.accessory.displayName} Logging Not Set, Using: ${this.deviceLogging}`);
     }
   }
 
@@ -417,9 +428,25 @@ export class LockMechanism {
     }
   }
 
+  debugWarnLog(...log: any[]): void {
+    if (this.enablingDeviceLogging()) {
+      if (this.deviceLogging?.includes('debug')) {
+        this.platform.log.warn('[DEBUG]', String(...log));
+      }
+    }
+  }
+
   errorLog(...log: any[]): void {
     if (this.enablingDeviceLogging()) {
       this.platform.log.error(String(...log));
+    }
+  }
+
+  debugErrorLog(...log: any[]): void {
+    if (this.enablingDeviceLogging()) {
+      if (this.deviceLogging?.includes('debug')) {
+        this.platform.log.error('[DEBUG]', String(...log));
+      }
     }
   }
 
