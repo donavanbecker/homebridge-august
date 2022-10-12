@@ -24,7 +24,7 @@ export class LockMechanism {
   ContactSensorState!: CharacteristicValue;
 
   // Lock Status
-  retryCount: any;
+  retryCount?: any;
   state: any;
   locked!: boolean;
   unlocked!: boolean;
@@ -147,12 +147,12 @@ export class LockMechanism {
   async parseStatus(): Promise<void> {
     this.debugLog(`Lock: ${this.accessory.displayName} parseStatus`);
     // Lock Mechanism
-    if (this.retryCount > 1 && !this.locked && !this.unlocked) {
-      this.LockCurrentState = this.platform.Characteristic.LockCurrentState.JAMMED;
-    } else if (this.locked) {
+    if (this.locked) {
       this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
     } else if (this.unlocked) {
       this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNSECURED;
+    } else if (this.retryCount > 1) {
+      this.LockCurrentState = this.platform.Characteristic.LockCurrentState.JAMMED;
     } else {
       this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNKNOWN;
       this.refreshStatus();
@@ -204,10 +204,14 @@ export class LockMechanism {
       const lockStatus = await this.platform.august.status(this.device.lockId);
       this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(lockStatus)}`);
       if (lockStatus) {
-        this.retryCount = lockStatus.retryCount;
-        this.state = lockStatus.state;
-        this.locked = lockStatus.state.locked;
-        this.unlocked = lockStatus.state.unlocked;
+        if (lockStatus.retryCount) {
+          this.retryCount = lockStatus.retryCount;
+        }
+        if (lockStatus.state) {
+          this.state = lockStatus.state;
+          this.locked = lockStatus.state.locked;
+          this.unlocked = lockStatus.state.unlocked;
+        }
         if (!this.device.lock?.hide_contactsensor) {
           this.open = lockStatus.state.open;
           this.closed = lockStatus.state.closed;
@@ -227,7 +231,7 @@ export class LockMechanism {
         if (!this.device.lock?.hide_contactsensor) {
           this.doorState = lockDetails.LockStatus.doorState;
         }
-      }else {
+      } else {
         this.debugErrorLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
       }
 
