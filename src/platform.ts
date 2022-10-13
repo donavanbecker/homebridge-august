@@ -171,6 +171,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         // A 6-digit code will be sent to your email or phone (depending on what you used for your augustId).
         // Need some way to get this code from the user.
         this.august.authorize();
+        this.warnLog('Input Your August email verification code into the validateCode config and restart Homebridge.');
       }
       //this.verifyConfig();
     } catch (e: any) {
