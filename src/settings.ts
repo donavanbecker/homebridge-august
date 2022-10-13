@@ -17,9 +17,11 @@ export interface AugustPlatformConfig extends PlatformConfig {
 }
 
 export type credentials = {
+  installId: string;
   augustId?: string; // Phone must be formatted +[countrycode][number]
   password?: string;
   validateCode?: string;
+  isValidated?: boolean;
 };
 
 export type options = {

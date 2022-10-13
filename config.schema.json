@@ -20,7 +20,7 @@
             "title": "August ID",
             "type": "string",
             "x-schema-form": {
-              "type": "email"
+              "type": "username"
             }
           },
           "password": {
@@ -30,12 +30,20 @@
               "type": "password"
             }
           },
+          "installId": {
+            "title": "Install ID",
+            "type": "string"
+          },
           "validateCode": {
             "title": "August  Verification Code",
             "type": "string",
             "x-schema-form": {
-              "type": "password"
+              "type": "one-time-code"
             }
+          },
+          "isValidated": {
+            "title": "Validated",
+            "type": "boolean"
           },
           "notice": {
             "title": "Notice",

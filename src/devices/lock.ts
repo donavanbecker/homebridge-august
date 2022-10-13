@@ -200,6 +200,7 @@ export class LockMechanism {
    */
   async refreshStatus(): Promise<void> {
     try {
+      await this.platform.augustCredentials();
       // Update Lock Status
       const lockStatus = await this.platform.august.status(this.device.lockId);
       this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(lockStatus)}`);
@@ -249,6 +250,7 @@ export class LockMechanism {
    */
   async pushChanges(): Promise<void> {
     try {
+      await this.platform.augustCredentials();
       if (this.LockTargetState === this.platform.Characteristic.LockTargetState.UNSECURED) {
         await this.platform.august.unlock(this.device.lockId, (AugustEvent: any, timestamp: any) => {
           this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent (pushChanges): ${superStringify(AugustEvent), superStringify(timestamp)}`);
@@ -329,6 +331,7 @@ export class LockMechanism {
   }
 
   async subscribeAugust(): Promise<void> {
+    await this.platform.augustCredentials();
     await this.platform.august.subscribe(this.device.lockId, (AugustEvent: any, timestamp: any) => {
       this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${superStringify(AugustEvent), superStringify(timestamp)}`);
       //LockCurrentState
@@ -386,7 +389,7 @@ export class LockMechanism {
   async config(device: device & devicesConfig): Promise<void> {
     let config = {};
     if (device.lock) {
-      config = '';
+      config = device.lock || '';
     }
     if (device.logging !== undefined) {
       config['logging'] = device.logging;
