@@ -17,7 +17,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
 
-  version = require('../package.json').version; // eslint-disable-line @typescript-eslint/no-var-requires
+  version = process.env.npm_package_version!;
   august: August;
   account: any;
   debugMode!: boolean;
