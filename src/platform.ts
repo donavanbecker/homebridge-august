@@ -291,7 +291,9 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       }
     } else if (this.registerDevice(device)) {
       // the accessory does not yet exist, so we need to create it
-      this.infoLog(`Adding new accessory: ${device.LockName} Lock ID: ${device.lockId}`);
+      if (!device.external) {
+        this.infoLog(`Adding new accessory: ${device.LockName} Lock ID: ${device.lockId}`);
+      }
 
       // create a new accessory
       const accessory = new this.api.platformAccessory(device.LockName, uuid);
