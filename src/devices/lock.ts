@@ -252,15 +252,13 @@ export class LockMechanism {
     try {
       await this.platform.augustCredentials();
       if (this.LockTargetState === this.platform.Characteristic.LockTargetState.UNSECURED) {
-        await this.platform.august.unlock(this.device.lockId, (AugustEvent: any, timestamp: any) => {
-          this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent (pushChanges): ${superStringify(AugustEvent), superStringify(timestamp)}`);
-          this.infoLog(`Lock: ${this.accessory.displayName} Sending request to August API: Unlock (${this.LockTargetState})`);
-        });
+        this.debugWarnLog(`Lock: ${this.accessory.displayName} Sending request to August API: Unlock (${this.LockTargetState})`);
+        const lockStatus = await this.platform.august.unlock(this.device.lockId);
+        this.debugWarnLog(`Lock: ${this.accessory.displayName} (pushChanges-unlock) lockStatus: ${superStringify(lockStatus)}`);
       } else if (this.LockTargetState === this.platform.Characteristic.LockTargetState.SECURED) {
-        await this.platform.august.lock(this.device.lockId, (AugustEvent: any, timestamp: any) => {
-          this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent (pushChanges): ${superStringify(AugustEvent), superStringify(timestamp)}`);
-          this.infoLog(`Lock: ${this.accessory.displayName} Sending request to August API: Lock (${this.LockTargetState})`);
-        });
+        this.debugWarnLog(`Lock: ${this.accessory.displayName} Sending request to August API: Lock (${this.LockTargetState})`);
+        const lockStatus = await this.platform.august.lock(this.device.lockId);
+        this.debugWarnLog(`Lock: ${this.accessory.displayName} (pushChanges-lock) lockStatus: ${superStringify(lockStatus)}`);
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges) failed, this.LockTargetState: ${this.LockTargetState}`);
       }
@@ -323,10 +321,10 @@ export class LockMechanism {
     this.accessory.context.LockTargetState = this.LockTargetState;
     this.doLockUpdate.next();
     if (this.LockCurrentState === this.platform.Characteristic.LockCurrentState.UNSECURED) {
-      this.debugLog(`Lock: ${this.accessory.displayName} Unlocked`);
+      this.infoLog(`Lock: ${this.accessory.displayName} was Unlocked`);
     }
     if (this.LockCurrentState === this.platform.Characteristic.LockCurrentState.SECURED) {
-      this.debugLog(`Lock: ${this.accessory.displayName} Locked`);
+      this.infoLog(`Lock: ${this.accessory.displayName} was Locked`);
     }
   }
 
@@ -337,8 +335,14 @@ export class LockMechanism {
       //LockCurrentState
       if (AugustEvent.state.unlocked) {
         this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNSECURED;
+        if (this.LockCurrentState !== this.accessory.context.LockCurrentState) {
+          this.infoLog(`Lock: ${this.accessory.displayName} was Unlocked`);
+        }
       } else if (AugustEvent.state.locked) {
         this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
+        if (this.LockCurrentState !== this.accessory.context.LockCurrentState) {
+          this.infoLog(`Lock: ${this.accessory.displayName} was Locked`);
+        }
       } else {
         this.refreshStatus();
       }
@@ -348,9 +352,15 @@ export class LockMechanism {
         if (AugustEvent.state.open) {
           this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
           this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+          if (this.ContactSensorState !== this.accessory.context.ContactSensorState) {
+            this.infoLog(`Lock: ${this.accessory.displayName} was Opened`);
+          }
         } else if (AugustEvent.state.closed) {
           this.ContactSensorState = this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
           this.debugLog(`Lock: ${this.accessory.displayName} ContactSensorState: ${this.ContactSensorState}`);
+          if (this.ContactSensorState !== this.accessory.context.ContactSensorState) {
+            this.infoLog(`Lock: ${this.accessory.displayName} was Closed`);
+          }
         } else {
           this.refreshStatus();
         }
