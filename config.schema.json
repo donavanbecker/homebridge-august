@@ -195,7 +195,7 @@
     },
     {
       "type": "fieldset",
-      "title": "Optional August Device Settings",
+      "title": "August Device Settings",
       "expandable": true,
       "expanded": false,
       "items": [
