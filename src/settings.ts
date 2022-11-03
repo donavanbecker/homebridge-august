@@ -123,5 +123,6 @@ export interface devicesConfig extends device {
 }
 
 export type lock = {
+  hide_lock?: boolean;
   hide_contactsensor?: boolean;
 };
