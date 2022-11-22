@@ -138,7 +138,7 @@ export class LockMechanism {
             await this.pushChanges();
           }
         } catch (e: any) {
-          this.errorLog(e);
+          this.errorLog(`pushChanges: ${e}, hide_lock: ${this.device.lock.hide_lock}`);
         }
         // Refresh the status from the API
         interval(this.deviceRefreshRate * 500)
@@ -251,7 +251,7 @@ export class LockMechanism {
       this.parseStatus();
       this.updateHomeKitCharacteristics();
     } catch (e: any) {
-      this.errorLog(e);
+      this.errorLog(`refreshStatus: ${e}`);
       this.errorLog(`Lock: ${this.accessory.displayName} failed lockStatus (refreshStatus), Error Message: ${superStringify(e.message)}`);
     }
   }
@@ -274,7 +274,7 @@ export class LockMechanism {
         this.errorLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges) failed, this.LockTargetState: ${this.LockTargetState}`);
       }
     } catch (e: any) {
-      this.errorLog(e);
+      this.errorLog(`pushChanges: ${e}`);
       this.errorLog(`Lock: ${this.accessory.displayName} failed pushChanges, Error Message: ${superStringify(e.message)}`);
     }
   }
