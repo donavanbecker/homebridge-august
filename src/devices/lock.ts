@@ -39,6 +39,7 @@ export class LockMechanism {
   // Config
   deviceLogging!: string;
   deviceRefreshRate!: number;
+  hide_lock!: boolean;
 
   // Lock Updates
   lockUpdateInProgress: boolean;
@@ -48,6 +49,7 @@ export class LockMechanism {
     this.logs(device);
     this.refreshRate(device);
     this.config(device);
+    this.lock(device);
     this.cacheState();
 
     // default placeholders
@@ -69,7 +71,7 @@ export class LockMechanism {
       .updateValue(accessory.context.currentFirmwareVersion);
 
     // Lock Mechanism Service
-    if (device.lock?.hide_lock) {
+    if (this.hide_lock) {
       this.warnLog(`Lock: ${accessory.displayName} Removing Lock Mechanism Service`);
       this.lockService = this.accessory.getService(this.platform.Service.LockMechanism);
       accessory.removeService(this.lockService!);
@@ -134,11 +136,11 @@ export class LockMechanism {
       )
       .subscribe(async () => {
         try {
-          if (!this.device.lock.hide_lock) {
+          if (!this.hide_lock) {
             await this.pushChanges();
           }
         } catch (e: any) {
-          this.errorLog(`pushChanges: ${e}, hide_lock: ${this.device.lock.hide_lock}`);
+          this.errorLog(`doLockUpdate pushChanges: ${e}`);
         }
         // Refresh the status from the API
         interval(this.deviceRefreshRate * 500)
@@ -158,7 +160,7 @@ export class LockMechanism {
     this.debugLog(`Lock: ${this.accessory.displayName} parseStatus`);
 
     // Lock Mechanism
-    if (!this.device.lock?.hide_lock){
+    if (!this.hide_lock){
       if (this.locked) {
         this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
       } else if (this.unlocked) {
@@ -218,10 +220,10 @@ export class LockMechanism {
       const lockStatus = await this.platform.august.status(this.device.lockId);
       this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(lockStatus)}`);
       if (lockStatus) {
-        if (lockStatus.retryCount && !this.device.lock.hide_lock) {
+        if (lockStatus.retryCount && !this.hide_lock) {
           this.retryCount = lockStatus.retryCount;
         }
-        if (lockStatus.state && !this.device.lock.hide_lock) {
+        if (lockStatus.state && !this.hide_lock) {
           this.state = lockStatus.state;
           this.locked = lockStatus.state.locked;
           this.unlocked = lockStatus.state.unlocked;
@@ -284,7 +286,7 @@ export class LockMechanism {
    */
   async updateHomeKitCharacteristics(): Promise<void> {
     // Lock Mechanism
-    if (!this.device.lock?.hide_lock) {
+    if (!this.hide_lock) {
       if (this.LockTargetState === undefined) {
         this.debugLog(`Lock: ${this.accessory.displayName} LockTargetState: ${this.LockTargetState}`);
       } else {
@@ -345,7 +347,7 @@ export class LockMechanism {
     await this.platform.august.subscribe(this.device.lockId, (AugustEvent: any, timestamp: any) => {
       this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${superStringify(AugustEvent), superStringify(timestamp)}`);
       //LockCurrentState
-      if (!this.device.lock?.hide_lock) {
+      if (!this.hide_lock) {
         if (AugustEvent.state.unlocked) {
           this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNSECURED;
           if (this.LockCurrentState !== this.accessory.context.LockCurrentState) {
@@ -385,7 +387,7 @@ export class LockMechanism {
 
 
   async cacheState() {
-    if (!this.device.lock?.hide_lock) {
+    if (!this.hide_lock) {
       if (this.LockCurrentState === undefined) {
         this.LockCurrentState = this.accessory.context.LockCurrentState | this.platform.Characteristic.LockCurrentState.SECURED;
       }
@@ -408,6 +410,14 @@ export class LockMechanism {
       } else {
         this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
       }
+    }
+  }
+
+  async lock(device: device & devicesConfig): Promise<void> {
+    if (device.lock.hide_lock) {
+      this.hide_lock = device.lock.hide_lock;
+    } else {
+      this.hide_lock = false;
     }
   }
 
