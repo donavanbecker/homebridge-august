@@ -114,7 +114,7 @@ export type Lock = {
 export interface devicesConfig extends device {
   configLockName?: string;
   lockId: string;
-  lock: lock;
+  lock?: lock;
   hide_device?: boolean;
   external?: boolean;
   logging?: string;

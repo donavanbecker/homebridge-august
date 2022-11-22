@@ -414,8 +414,12 @@ export class LockMechanism {
   }
 
   async lock(device: device & devicesConfig): Promise<void> {
-    if (device.lock.hide_lock) {
-      this.hide_lock = device.lock.hide_lock;
+    if (device.lock) {
+      if (device.lock?.hide_lock) {
+        this.hide_lock = device.lock.hide_lock!;
+      } else {
+        this.hide_lock = false;
+      }
     } else {
       this.hide_lock = false;
     }
