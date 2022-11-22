@@ -48,8 +48,8 @@ export class LockMechanism {
   constructor(private readonly platform: AugustPlatform, private accessory: PlatformAccessory, public device: device & devicesConfig) {
     this.logs(device);
     this.refreshRate(device);
-    this.config(device);
     this.lock(device);
+    this.config(device);
     this.cacheState();
 
     // default placeholders
@@ -435,6 +435,9 @@ export class LockMechanism {
     }
     if (device.refreshRate !== undefined) {
       config['refreshRate'] = device.refreshRate;
+    }
+    if (device.lock?.hide_lock !== undefined) {
+      config['hide_lock'] = this.hide_lock;
     }
     if (Object.entries(config).length !== 0) {
       this.infoLog(`Lock: ${this.accessory.displayName} Config: ${superStringify(config)}`);
