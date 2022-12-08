@@ -17,7 +17,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
 
-  version = process.env.npm_package_version!;
+  version = process.env.npm_package_version || '1.1.0';
   august: August;
   account: any;
   debugMode!: boolean;
