@@ -137,7 +137,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       await this.augustCredentials();
       if (!this.config.credentials?.isValidated && this.config.credentials?.validateCode) {
         const validateCode = this.config.credentials?.validateCode;
-        const isValidated = await this.august.validate(validateCode);
+        const isValidated = await this.august.validate(parseInt(validateCode));
         // If validated successfully, set flag for future use, and you can now use the API
         this.config.credentials.isValidated = isValidated;
         // load in the current config
