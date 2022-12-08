@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Version 1.1.0](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.1.0) (2022-12-07)
+
+## What's Changes
+- Added option to `hide_lock` and only display Door Sense (Contact Sensor). [#26](https://github.com/donavanbecker/homebridge-august/issues/26)
+- Fixed issue when DoorSense is not configured/in use. [#21](https://github.com/donavanbecker/homebridge-august/issues/21)
+- Fixed TypeError: Cannot convert undefined or null to object. Thanks [@evantobin](https://github.com/evantobin)
+- Housekeeping and updated dependencies.
+
+**Full Changelog**: https://github.com/donavanbecker/homebridge-august/compare/v1.0.5...v1.1.0
+
 ## [Version 1.0.5](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.0.5) (2022-10-09)
 
 ## What's Changes

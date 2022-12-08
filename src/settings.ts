@@ -17,9 +17,11 @@ export interface AugustPlatformConfig extends PlatformConfig {
 }
 
 export type credentials = {
+  installId: string;
   augustId?: string; // Phone must be formatted +[countrycode][number]
   password?: string;
   validateCode?: string;
+  isValidated?: boolean;
 };
 
 export type options = {
@@ -112,7 +114,7 @@ export type Lock = {
 export interface devicesConfig extends device {
   configLockName?: string;
   lockId: string;
-  lock: lock;
+  lock?: lock;
   hide_device?: boolean;
   external?: boolean;
   logging?: string;
@@ -121,5 +123,6 @@ export interface devicesConfig extends device {
 }
 
 export type lock = {
+  hide_lock?: boolean;
   hide_contactsensor?: boolean;
 };

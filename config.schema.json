@@ -3,7 +3,7 @@
   "pluginType": "platform",
   "singular": true,
   "customUi": true,
-  "headerDisplay": "<p align='center'><img width='100px' src='https://user-images.githubusercontent.com/9875439/102681754-ac2eb800-4189-11eb-8e17-7c47c804484b.png'></p>\n\nThe **August** plugin allows you to control August Devices. \n\nTo get started link your August Account.\n\n1. Input your August E-mail/Phone Number into the August Account Info.\n\n2.Restart Homebrdige to receive an August Validate Code.\n\n3. Input your Validate Code into the August Account Info.\n\n4. Finally Restart Homebridge.",
+  "headerDisplay": "<p align='center'><img width='100px' src='https://user-images.githubusercontent.com/9875439/102681754-ac2eb800-4189-11eb-8e17-7c47c804484b.png'></p>\n\nThe **August** plugin allows you to control August Devices. \n\nTo get started link your August Account.\n\n1. Input your August E-mail/Phone Number into the August Account Info.\n\n2.Restart Homebridge to receive an August Validate Code.\n\n3. Input your Validate Code into the August Account Info.\n\n4. Finally Restart Homebridge.",
   "footerDisplay": "Please raise any issues on our [project page](https://github.com/donavanbecker/homebridge-august/issues).\n\nIf you would like to have other August Devices added to this plugin fill out [Feature Request Form](https://github.com/donavanbecker/homebridge-august/issues/new?assignees=&labels=&template=feature_request.md).",
   "schema": {
     "type": "object",
@@ -20,7 +20,7 @@
             "title": "August ID",
             "type": "string",
             "x-schema-form": {
-              "type": "email"
+              "type": "username"
             }
           },
           "password": {
@@ -30,12 +30,20 @@
               "type": "password"
             }
           },
+          "installId": {
+            "title": "Install ID",
+            "type": "string"
+          },
           "validateCode": {
             "title": "August  Verification Code",
             "type": "string",
             "x-schema-form": {
-              "type": "password"
+              "type": "one-time-code"
             }
+          },
+          "isValidated": {
+            "title": "Validated",
+            "type": "boolean"
           },
           "notice": {
             "title": "Notice",
@@ -78,6 +86,14 @@
                 "lock": {
                   "type": "object",
                   "properties": {
+                    "hide_lock": {
+                      "title": "Hide Lock",
+                      "description": "Allows you to hide the lock and only show the Contact Sensor. Useful for locks that already support HomeKit.",
+                      "type": "boolean",
+                      "condition": {
+                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].lockId);"
+                      }
+                    },
                     "hide_contactsensor": {
                       "title": "Hide Lock's Contact Sensor",
                       "type": "boolean",
@@ -182,12 +198,14 @@
       "items": [
         "credentials.augustId",
         "credentials.password",
-        "credentials.validateCode"
+        "credentials.validateCode",
+        "credentials.installId",
+        "credentials.isValidated"
       ]
     },
     {
       "type": "fieldset",
-      "title": "Optional August Device Settings",
+      "title": "August Device Settings",
       "expandable": true,
       "expanded": false,
       "items": [
@@ -203,6 +221,7 @@
             "options.devices[].configLockName",
             "options.devices[].lockId",
             "options.devices[].hide_device",
+            "options.devices[].lock.hide_lock",
             "options.devices[].lock.hide_contactsensor",
             "options.devices[].firmware",
             "options.devices[].refreshRate",
