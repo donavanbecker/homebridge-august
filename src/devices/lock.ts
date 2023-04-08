@@ -405,7 +405,7 @@ export class LockMechanism {
       this.BatteryLevel = this.accessory.context.BatteryLevel || 100;
     }
     if (this.StatusLowBattery === undefined) {
-      if (this.BatteryLevel < 15) {
+      if (Number(this.BatteryLevel) < 15) {
         this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
       } else {
         this.StatusLowBattery = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
