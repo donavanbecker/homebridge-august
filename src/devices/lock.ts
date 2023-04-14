@@ -446,6 +446,10 @@ export class LockMechanism {
 
   async refreshRate(device: device & devicesConfig): Promise<void> {
     if (device.refreshRate) {
+      if (device.refreshRate < 1800) {
+        device.refreshRate = 1800;
+        this.warnLog('Refresh Rate cannot be set to lower the 5 mins, as Lock detail (battery level, etc) are unlikely to change within that period');
+      }
       this.deviceRefreshRate = this.accessory.context.refreshRate = device.refreshRate;
       this.debugLog(`Lock: ${this.accessory.displayName} Using Device Config refreshRate: ${this.deviceRefreshRate}`);
     } else if (this.platform.config.options!.refreshRate) {

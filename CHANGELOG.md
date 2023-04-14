@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Beta-Version 1.2.0](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.2.0) (2023-04-15)
+
+## What's Changes
+- Default Refresh Rate has been updated to limit the rate at which we refresh from August APIs.
+  - This should fix any Status 429 Errors. [Fix for #55](https://github.com/donavanbecker/homebridge-august/issues/55)
+
+**Full Changelog**: https://github.com/donavanbecker/homebridge-august/compare/v1.1.1...v1.2.0
+
 ## [Version 1.1.1](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.1.1) (2023-04-07)
 
 ## What's Changes
