@@ -350,11 +350,13 @@ export class LockMechanism {
       if (!this.hide_lock) {
         if (AugustEvent.state.unlocked) {
           this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNSECURED;
+          this.LockTargetState = this.platform.Characteristic.LockCurrentState.UNSECURED;
           if (this.LockCurrentState !== this.accessory.context.LockCurrentState) {
             this.infoLog(`Lock: ${this.accessory.displayName} was Unlocked`);
           }
         } else if (AugustEvent.state.locked) {
           this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
+          this.LockTargetState = this.platform.Characteristic.LockCurrentState.SECURED;
           if (this.LockCurrentState !== this.accessory.context.LockCurrentState) {
             this.infoLog(`Lock: ${this.accessory.displayName} was Locked`);
           }
