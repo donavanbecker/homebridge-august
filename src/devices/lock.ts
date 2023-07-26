@@ -345,7 +345,7 @@ export class LockMechanism {
   async subscribeAugust(): Promise<void> {
     await this.platform.augustCredentials();
     await this.platform.august.subscribe(this.device.lockId, (AugustEvent: any, timestamp: any) => {
-      this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${superStringify(AugustEvent), superStringify(timestamp)}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${superStringify(AugustEvent)}, ${superStringify(timestamp)}`);
       //LockCurrentState
       if (!this.hide_lock) {
         if (AugustEvent.state.unlocked) {
