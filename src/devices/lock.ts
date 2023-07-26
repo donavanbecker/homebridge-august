@@ -222,7 +222,7 @@ export class LockMechanism {
         this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
 		
 		// Get Lock Status (use August-api helper function to resolve state)
-		var lockStatus = lockDetails.lockStatus;
+		var lockStatus = lockDetails.LockStatus;
 		this.platform.august.addSimpleProps(lockStatus);
 		if (lockStatus.state && !this.hide_lock) {
 		  this.unlocked = lockStatus.state.unlocked;
