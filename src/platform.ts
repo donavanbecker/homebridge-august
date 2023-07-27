@@ -66,7 +66,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
           +`${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
         }
       } catch (e: any) {
-        this.errorLog(`Discover Devices: ${e}`);
+        this.errorLog(`Discover Devices 1: ${e}`);
       }
     });
   }
@@ -261,7 +261,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         this.errorLog('August ID & Password Supplied, Issue with Auth.');
       }
     } catch (e: any) {
-      this.errorLog(`Discover Devices: ${e}`);
+      this.errorLog(`Discover Devices 2: ${e}`);
     }
   }
 
