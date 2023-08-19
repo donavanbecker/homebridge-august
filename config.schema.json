@@ -130,7 +130,13 @@
                 "logging": {
                   "title": "Device Logging Override Setting",
                   "type": "string",
+                  "required": true,
+                  "default": "",
                   "oneOf": [
+                    {
+                      "title": "Default Logging",
+                      "enum": [""]
+                    },
                     {
                       "title": "Standard Logging",
                       "enum": ["standard"]
@@ -169,7 +175,13 @@
           "logging": {
             "title": "Logging Setting",
             "type": "string",
+            "required": true,
+            "default": "",
             "oneOf": [
+              {
+                "title": "Default Logging",
+                "enum": [""]
+              },
               {
                 "title": "Standard Logging",
                 "enum": ["standard"]
@@ -195,13 +207,7 @@
       "title": "August Account Info",
       "expandable": true,
       "expanded": false,
-      "items": [
-        "credentials.augustId",
-        "credentials.password",
-        "credentials.validateCode",
-        "credentials.installId",
-        "credentials.isValidated"
-      ]
+      "items": ["credentials.augustId", "credentials.password", "credentials.validateCode", "credentials.installId", "credentials.isValidated"]
     },
     {
       "type": "fieldset",

@@ -1,7 +1,7 @@
 {
   "displayName": "Homebridge August",
   "name": "homebridge-august",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "The [Homebridge](https://homebridge.io) August plugin allows you to access your [August](https://august.com) & [Yale](https://shopyalehome.com) device(s) from HomeKit.",
   "author": "donavanbecker",
   "license": "Apache-2.0",
@@ -13,8 +13,8 @@
     "url": "https://github.com/donavanbecker/homebridge-august/issues"
   },
   "engines": {
-    "homebridge": "^1.6.0 || ^2.0.0-beta.0",
-    "node": "^16.20.0 || ^18.15.0"
+    "homebridge": "^1.6.1",
+    "node": "^16.20.1 || ^18.17.0 || ^20.5.0"
   },
   "main": "dist/index.js",
   "scripts": {
@@ -46,23 +46,23 @@
   ],
   "dependencies": {
     "august-api": "^1.4.0",
-    "rxjs": "^7.8.0",
-    "@homebridge/plugin-ui-utils": "^0.0.19",
+    "rxjs": "^7.8.1",
+    "@homebridge/plugin-ui-utils": "^0.1.0",
     "super-stringify": "^1.0.0"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "@typescript-eslint/eslint-plugin": "^5.57.1",
-    "@typescript-eslint/parser": "^5.57.1",
-    "eslint": "^8.38.0",
-    "eslint-config-prettier": "8.8.0",
-    "eslint-plugin-prettier": "4.2.1",
-    "homebridge": "^1.6.0",
-    "nodemon": "^2.0.22",
-    "rimraf": "^4.4.1",
+    "@types/node": "^20.5.1",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/parser": "^6.4.0",
+    "eslint": "^8.47.0",
+    "eslint-config-prettier": "9.0.0",
+    "eslint-plugin-prettier": "5.0.0",
+    "homebridge": "^1.6.1",
+    "nodemon": "^3.0.1",
+    "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.0.4",
-    "npm-check-updates": "^16.10.7",
-    "prettier": "2.8.7"
+    "typescript": "^5.1.6",
+    "npm-check-updates": "^16.12.2",
+    "prettier": "3.0.2"
   }
 }

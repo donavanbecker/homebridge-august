@@ -216,35 +216,36 @@ export class LockMechanism {
   async refreshStatus(): Promise<void> {
     try {
       await this.platform.augustCredentials();
-      // Update Lock Status
-      const lockStatus = await this.platform.august.status(this.device.lockId);
-      this.debugLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(lockStatus)}`);
-      if (lockStatus) {
-        if (lockStatus.retryCount && !this.hide_lock) {
-          this.retryCount = lockStatus.retryCount;
-        }
-        if (lockStatus.state && !this.hide_lock) {
-          this.state = lockStatus.state;
-          this.locked = lockStatus.state.locked;
-          this.unlocked = lockStatus.state.unlocked;
-        }
-        if (!this.device.lock?.hide_contactsensor) {
-          this.open = lockStatus.state.open;
-          this.closed = lockStatus.state.closed;
-        }
-      } else {
-        this.debugErrorLog(`Lock: ${this.accessory.displayName} lockStatus (refreshStatus): ${superStringify(lockStatus)}`);
-      }
       // Update Lock Details
       const lockDetails = await this.platform.august.details(this.device.lockId);
       if (lockDetails) {
         this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
+		
+        // Get Lock Status (use August-api helper function to resolve state)
+        var lockStatus = lockDetails.LockStatus;
+        this.platform.august.addSimpleProps(lockStatus);
+        if (lockStatus.state && !this.hide_lock) {
+          this.unlocked = lockStatus.state.unlocked;
+          this.state = lockStatus.state;
+          this.locked = lockStatus.state.locked;
+        }
+        
+        // TODO: Handle lock jammed
+        this.retryCount = 1;
+        
+		// Get Battery level
         this.battery = (Number(lockDetails.battery) * 100).toFixed();
         this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
+        
+        // Get Firmware
         this.currentFirmwareVersion = lockDetails.currentFirmwareVersion;
         this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
+        
+        // Get door state if available
         if (!this.device.lock?.hide_contactsensor) {
           this.doorState = lockDetails.LockStatus.doorState;
+          this.open = lockStatus.state.open;
+          this.closed = lockStatus.state.closed;
         }
       } else {
         this.debugErrorLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
@@ -345,16 +346,18 @@ export class LockMechanism {
   async subscribeAugust(): Promise<void> {
     await this.platform.augustCredentials();
     await this.platform.august.subscribe(this.device.lockId, (AugustEvent: any, timestamp: any) => {
-      this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${superStringify(AugustEvent), superStringify(timestamp)}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${superStringify(AugustEvent)}, ${superStringify(timestamp)}`);
       //LockCurrentState
       if (!this.hide_lock) {
         if (AugustEvent.state.unlocked) {
           this.LockCurrentState = this.platform.Characteristic.LockCurrentState.UNSECURED;
+          this.LockTargetState = this.platform.Characteristic.LockCurrentState.UNSECURED;
           if (this.LockCurrentState !== this.accessory.context.LockCurrentState) {
             this.infoLog(`Lock: ${this.accessory.displayName} was Unlocked`);
           }
         } else if (AugustEvent.state.locked) {
           this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
+          this.LockTargetState = this.platform.Characteristic.LockCurrentState.SECURED;
           if (this.LockCurrentState !== this.accessory.context.LockCurrentState) {
             this.infoLog(`Lock: ${this.accessory.displayName} was Locked`);
           }
@@ -446,6 +449,10 @@ export class LockMechanism {
 
   async refreshRate(device: device & devicesConfig): Promise<void> {
     if (device.refreshRate) {
+      if (device.refreshRate < 1800) {
+        device.refreshRate = 1800;
+        this.warnLog('Refresh Rate cannot be set to lower the 5 mins, as Lock detail (battery level, etc) are unlikely to change within that period');
+      }
       this.deviceRefreshRate = this.accessory.context.refreshRate = device.refreshRate;
       this.debugLog(`Lock: ${this.accessory.displayName} Using Device Config refreshRate: ${this.deviceRefreshRate}`);
     } else if (this.platform.config.options!.refreshRate) {

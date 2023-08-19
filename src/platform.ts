@@ -66,7 +66,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
           +`${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
         }
       } catch (e: any) {
-        this.errorLog(`Discover Devices: ${e}`);
+        this.errorLog(`Discover Devices 1: ${e}`);
       }
     });
   }
@@ -106,6 +106,9 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       // default 1800 seconds (30 minutes)
       this.config.options!.refreshRate! = 1800;
       this.debugWarnLog('Using Default Refresh Rate (5 minutes).');
+    } else if (this.config.options.refreshRate < 1800) {
+      this.config.options.refreshRate = 1800;
+      this.warnLog('Refresh Rate cannot be set to lower the 5 mins, as Lock detail (battery level, etc) are unlikely to change within that period');
     }
 
     if (!this.config.credentials) {
@@ -258,7 +261,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         this.errorLog('August ID & Password Supplied, Issue with Auth.');
       }
     } catch (e: any) {
-      this.errorLog(`Discover Devices: ${e}`);
+      this.errorLog(`Discover Devices 2: ${e}`);
     }
   }
 
