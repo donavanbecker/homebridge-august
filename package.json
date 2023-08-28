@@ -1,7 +1,7 @@
 {
   "displayName": "Homebridge August",
   "name": "homebridge-august",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "The [Homebridge](https://homebridge.io) August plugin allows you to access your [August](https://august.com) & [Yale](https://shopyalehome.com) device(s) from HomeKit.",
   "author": "donavanbecker",
   "license": "Apache-2.0",
@@ -51,18 +51,18 @@
     "super-stringify": "^1.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.5.1",
-    "@typescript-eslint/eslint-plugin": "^6.4.0",
-    "@typescript-eslint/parser": "^6.4.0",
-    "eslint": "^8.47.0",
+    "@types/node": "^20.5.7",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
+    "eslint": "^8.48.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-prettier": "5.0.0",
     "homebridge": "^1.6.1",
     "nodemon": "^3.0.1",
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.1.6",
-    "npm-check-updates": "^16.12.2",
+    "typescript": "^5.2.2",
+    "npm-check-updates": "^16.13.1",
     "prettier": "3.0.2"
   }
 }
