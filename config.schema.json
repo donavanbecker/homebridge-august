@@ -13,6 +13,11 @@
         "title": "Name",
         "default": "August"
       },
+      "contryCode": {
+        "type": "string",
+        "title": "Country Code",
+        "default": "US"
+      },
       "credentials": {
         "type": "object",
         "properties": {
@@ -207,7 +212,7 @@
       "title": "August Account Info",
       "expandable": true,
       "expanded": false,
-      "items": ["credentials.augustId", "credentials.password", "credentials.validateCode", "credentials.installId", "credentials.isValidated"]
+      "items": ["credentials.augustId", "credentials.password", "credentials.validateCode", "credentials.installId", "credentials.isValidated", "contryCode"]
     },
     {
       "type": "fieldset",

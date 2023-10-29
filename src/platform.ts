@@ -1,4 +1,5 @@
 import August from 'august-api';
+import YaleHome from 'yalehome-api';
 import superStringify from 'super-stringify';
 import { readFileSync, writeFileSync } from 'fs';
 import { LockMechanism } from './devices/lock';
@@ -19,6 +20,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
   version = process.env.npm_package_version || '1.1.0';
   august: August;
+  yalehome: YaleHome;
   account: any;
   debugMode!: boolean;
   platformLogging!: string;
@@ -192,6 +194,16 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     this.debugLog(`August Credentials: ${superStringify(this.august)}`);
   }
 
+  async yalehomeCredentials() {
+    this.account = {
+      installId: this.config.credentials?.installId,
+      augustId: this.config.credentials?.augustId,
+      password: this.config.credentials?.password,
+    };
+    this.august = new YaleHome(this.config.credentials);
+    this.debugLog(`Yalehome Credentials: ${superStringify(this.august)}`);
+  }
+
   async pluginConfig() {
     const currentConfig = JSON.parse(readFileSync(this.api.user.configPath(), 'utf8'));
     // check the platforms section is an array before we do array things on it
@@ -215,7 +227,11 @@ export class AugustPlatform implements DynamicPlatformPlugin {
    */
   async discoverDevices() {
     try {
-      await this.augustCredentials();
+      if (this.config.contryCode === 'US') {
+        await this.augustCredentials();
+      } else {
+        await this.yalehomeCredentials();
+      }
       // August Locks
       const devices = await this.august.details();
       let deviceLists: any[];
