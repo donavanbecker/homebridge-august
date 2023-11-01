@@ -1,5 +1,4 @@
 import August from 'august-api';
-import YaleHome from 'yalehome-api';
 import superStringify from 'super-stringify';
 import { readFileSync, writeFileSync } from 'fs';
 import { LockMechanism } from './devices/lock';
@@ -20,7 +19,6 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
   version = process.env.npm_package_version || '1.1.0';
   august: August;
-  yalehome: YaleHome;
   account: any;
   debugMode!: boolean;
   platformLogging!: string;
@@ -61,11 +59,11 @@ export class AugustPlatform implements DynamicPlatformPlugin {
           await this.validated();
         } else if (this.config.credentials?.isValidated) {
           this.debugWarnLog(`augustId: ${this.config.credentials.augustId}, installId: ${this.config.credentials.installId}, password: `
-          +`${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
+            + `${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
           this.discoverDevices();
         } else {
           this.errorLog(`augustId: ${this.config.credentials.augustId}, installId: ${this.config.credentials.installId}, password: `
-          +`${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
+            + `${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
         }
       } catch (e: any) {
         this.errorLog(`Discover Devices 1: ${e}`);
@@ -115,12 +113,16 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
     if (!this.config.credentials) {
       throw 'Missing Credentials';
-    }
-    if (!this.config.credentials.augustId) {
-      throw 'Missing August ID (E-mail/Phone Number';
-    }
-    if (!this.config.credentials.password) {
-      throw 'Missing August Password';
+    } else {
+      if (!this.config.credentials.augustId) {
+        throw 'Missing August ID (E-mail/Phone Number';
+      }
+      if (!this.config.credentials.password) {
+        throw 'Missing August Password';
+      }
+      if (!this.config.credentials.countryCode) {
+        this.config.credentials!.countryCode = 'US';
+      }
     }
   }
 
@@ -185,23 +187,25 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   }
 
   async augustCredentials() {
+    if (!this.config.credentials) {
+      throw 'Missing Credentials';
+    }
     this.account = {
-      installId: this.config.credentials?.installId,
-      augustId: this.config.credentials?.augustId,
-      password: this.config.credentials?.password,
+      installId: this.config.credentials.installId,
+      augustId: this.config.credentials.augustId,
+      password: this.config.credentials.password,
+      countryCode: this.config.credentials.countryCode,
     };
+    if (this.config.credentials.apiKey !== undefined) {
+      this.account['apiKey'] = this.config.credentials.apiKey;
+      this.warnLog(`apiKey: ${this.account.apiKey}`);
+    }
+    if (this.config.credentials.pnSubKey !== undefined) {
+      this.account['pnSubKey'] = this.config.credentials.pnSubKey;
+      this.warnLog(`pnSubKey: ${this.account.pnSubKey}`);
+    }
     this.august = new August(this.config.credentials);
     this.debugLog(`August Credentials: ${superStringify(this.august)}`);
-  }
-
-  async yalehomeCredentials() {
-    this.account = {
-      installId: this.config.credentials?.installId,
-      augustId: this.config.credentials?.augustId,
-      password: this.config.credentials?.password,
-    };
-    this.august = new YaleHome(this.config.credentials);
-    this.debugLog(`Yalehome Credentials: ${superStringify(this.august)}`);
   }
 
   async pluginConfig() {
@@ -227,11 +231,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
    */
   async discoverDevices() {
     try {
-      if (this.config.contryCode === 'US') {
-        await this.augustCredentials();
-      } else {
-        await this.yalehomeCredentials();
-      }
+      await this.augustCredentials();
       // August Locks
       const devices = await this.august.details();
       let deviceLists: any[];

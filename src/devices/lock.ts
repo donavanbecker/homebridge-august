@@ -78,8 +78,8 @@ export class LockMechanism {
     } else if (!this.lockService) {
       this.debugLog(`Lock: ${accessory.displayName} Add Lock Mechanism Service`);
       (this.lockService =
-        this.accessory.getService(this.platform.Service.LockMechanism) || this.accessory.addService(this.platform.Service.LockMechanism)),
-      accessory.displayName;
+        this.accessory.getService(this.platform.Service.LockMechanism)
+        || this.accessory.addService(this.platform.Service.LockMechanism)), accessory.displayName;
       // Service Name
       this.lockService.setCharacteristic(this.platform.Characteristic.Name, accessory.displayName);
       //Required Characteristics" see https://developers.homebridge.io/#/service/LockMechanism
@@ -97,8 +97,8 @@ export class LockMechanism {
     } else if (!this.contactSensorService) {
       this.debugLog(`Lock: ${accessory.displayName} Add Contact Sensor Service`);
       (this.contactSensorService =
-        this.accessory.getService(this.platform.Service.ContactSensor) || this.accessory.addService(this.platform.Service.ContactSensor)),
-      `${accessory.displayName} Contact Sensor`;
+        this.accessory.getService(this.platform.Service.ContactSensor)
+        || this.accessory.addService(this.platform.Service.ContactSensor)), `${accessory.displayName} Contact Sensor`;
 
       // Service Name
       this.contactSensorService.setCharacteristic(this.platform.Characteristic.Name, `${accessory.displayName} Contact Sensor`);
@@ -109,8 +109,8 @@ export class LockMechanism {
 
     // Battery Service
     (this.batteryService =
-      this.accessory.getService(this.platform.Service.Battery) || this.accessory.addService(this.platform.Service.Battery)),
-    `${accessory.displayName} Battery`;
+      this.accessory.getService(this.platform.Service.Battery)
+      || this.accessory.addService(this.platform.Service.Battery)), `${accessory.displayName} Battery`;
 
     // Retrieve initial values and updateHomekit
     this.updateHomeKitCharacteristics();
@@ -160,7 +160,7 @@ export class LockMechanism {
     this.debugLog(`Lock: ${this.accessory.displayName} parseStatus`);
 
     // Lock Mechanism
-    if (!this.hide_lock){
+    if (!this.hide_lock) {
       if (this.locked) {
         this.LockCurrentState = this.platform.Characteristic.LockCurrentState.SECURED;
       } else if (this.unlocked) {
@@ -202,11 +202,11 @@ export class LockMechanism {
     // Update Firmware
     if (this.currentFirmwareVersion !== this.accessory.context.currentFirmwareVersion) {
       this.warnLog(`Lock: ${this.accessory.displayName} Firmware Version changed to Current Firmware Version: ${this.currentFirmwareVersion}`);
-    this.accessory
-      .getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.currentFirmwareVersion)
-      .getCharacteristic(this.platform.Characteristic.FirmwareRevision)
-      .updateValue(this.currentFirmwareVersion);
+      this.accessory
+        .getService(this.platform.Service.AccessoryInformation)!
+        .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.currentFirmwareVersion)
+        .getCharacteristic(this.platform.Characteristic.FirmwareRevision)
+        .updateValue(this.currentFirmwareVersion);
     }
   }
 
@@ -220,27 +220,27 @@ export class LockMechanism {
       const lockDetails = await this.platform.august.details(this.device.lockId);
       if (lockDetails) {
         this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
-		
+
         // Get Lock Status (use August-api helper function to resolve state)
-        var lockStatus = lockDetails.LockStatus;
+        const lockStatus = lockDetails.LockStatus;
         this.platform.august.addSimpleProps(lockStatus);
         if (lockStatus.state && !this.hide_lock) {
           this.unlocked = lockStatus.state.unlocked;
           this.state = lockStatus.state;
           this.locked = lockStatus.state.locked;
         }
-        
+
         // TODO: Handle lock jammed
         this.retryCount = 1;
-        
-		// Get Battery level
+
+        // Get Battery level
         this.battery = (Number(lockDetails.battery) * 100).toFixed();
         this.debugLog(`Lock: ${this.accessory.displayName} battery (lockDetails): ${this.battery}`);
-        
+
         // Get Firmware
         this.currentFirmwareVersion = lockDetails.currentFirmwareVersion;
         this.debugLog(`Lock: ${this.accessory.displayName} currentFirmwareVersion (lockDetails): ${this.currentFirmwareVersion}`);
-        
+
         // Get door state if available
         if (!this.device.lock?.hide_contactsensor) {
           this.doorState = lockDetails.LockStatus.doorState;

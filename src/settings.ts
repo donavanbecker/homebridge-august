@@ -13,14 +13,16 @@ export const PLUGIN_NAME = 'homebridge-august';
 export interface AugustPlatformConfig extends PlatformConfig {
   credentials?: credentials;
   disablePlugin?: boolean;
-  contryCode?: string;
   options?: options | Record<string, never>;
 }
 
 export type credentials = {
+  apiKey?: string;
+  pnSubKey?: string;
   installId: string;
   augustId?: string; // Phone must be formatted +[countrycode][number]
   password?: string;
+  countryCode: string;
   validateCode?: string;
   isValidated?: boolean;
 };
@@ -88,7 +90,7 @@ export type LockStatus = {
   doorState: string
 }
 
-export type Bridge ={
+export type Bridge = {
   _id: string
   mfgBridgeID: string
   deviceModel: string
