@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [Version 1.3.0](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.2.1) (2023-10-31)
+
+## What's Changes
+- Add support for Yale Home with countryCode, Thanks [@hufftheweevil](https://github.com/hufftheweevil)
+- Housekeeping and updated dependencies.)
+
+**Full Changelog**: https://github.com/donavanbecker/homebridge-august/compare/v1.2.1...v1.3.0
+
 ## [Version 1.2.1](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.2.1) (2023-08-27)
 
 ## What's Changes

@@ -17,9 +17,12 @@ export interface AugustPlatformConfig extends PlatformConfig {
 }
 
 export type credentials = {
+  apiKey?: string;
+  pnSubKey?: string;
   installId: string;
   augustId?: string; // Phone must be formatted +[countrycode][number]
   password?: string;
+  countryCode: string;
   validateCode?: string;
   isValidated?: boolean;
 };
@@ -87,7 +90,7 @@ export type LockStatus = {
   doorState: string
 }
 
-export type Bridge ={
+export type Bridge = {
   _id: string
   mfgBridgeID: string
   deviceModel: string

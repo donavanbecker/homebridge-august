@@ -59,11 +59,11 @@ export class AugustPlatform implements DynamicPlatformPlugin {
           await this.validated();
         } else if (this.config.credentials?.isValidated) {
           this.debugWarnLog(`augustId: ${this.config.credentials.augustId}, installId: ${this.config.credentials.installId}, password: `
-          +`${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
+            + `${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
           this.discoverDevices();
         } else {
           this.errorLog(`augustId: ${this.config.credentials.augustId}, installId: ${this.config.credentials.installId}, password: `
-          +`${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
+            + `${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
         }
       } catch (e: any) {
         this.errorLog(`Discover Devices 1: ${e}`);
@@ -113,12 +113,16 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
     if (!this.config.credentials) {
       throw 'Missing Credentials';
-    }
-    if (!this.config.credentials.augustId) {
-      throw 'Missing August ID (E-mail/Phone Number';
-    }
-    if (!this.config.credentials.password) {
-      throw 'Missing August Password';
+    } else {
+      if (!this.config.credentials.augustId) {
+        throw 'Missing August ID (E-mail/Phone Number';
+      }
+      if (!this.config.credentials.password) {
+        throw 'Missing August Password';
+      }
+      if (!this.config.credentials.countryCode) {
+        this.config.credentials!.countryCode = 'US';
+      }
     }
   }
 
@@ -183,11 +187,23 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   }
 
   async augustCredentials() {
+    if (!this.config.credentials) {
+      throw 'Missing Credentials';
+    }
     this.account = {
-      installId: this.config.credentials?.installId,
-      augustId: this.config.credentials?.augustId,
-      password: this.config.credentials?.password,
+      installId: this.config.credentials.installId,
+      augustId: this.config.credentials.augustId,
+      password: this.config.credentials.password,
+      countryCode: this.config.credentials.countryCode,
     };
+    if (this.config.credentials.apiKey !== undefined) {
+      this.account['apiKey'] = this.config.credentials.apiKey;
+      this.warnLog(`apiKey: ${this.account.apiKey}`);
+    }
+    if (this.config.credentials.pnSubKey !== undefined) {
+      this.account['pnSubKey'] = this.config.credentials.pnSubKey;
+      this.warnLog(`pnSubKey: ${this.account.pnSubKey}`);
+    }
     this.august = new August(this.config.credentials);
     this.debugLog(`August Credentials: ${superStringify(this.august)}`);
   }

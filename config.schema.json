@@ -30,6 +30,19 @@
               "type": "password"
             }
           },
+          "contryCode": {
+            "type": "string",
+            "title": "Country Code",
+            "default": "US"
+          },
+          "apiKey": {
+            "type": "string",
+            "title": "apiKey"
+          },
+          "pnSubKey": {
+            "type": "string",
+            "title": "pnSubKey"
+          },
           "installId": {
             "title": "Install ID",
             "type": "string"
@@ -51,7 +64,13 @@
             "default": "Keep your tokens a secret!"
           }
         },
-        "required": ["augustId", "password", "validateCode", "notice"]
+        "required": [
+          "augustId",
+          "password",
+          "countryCode",
+          "validateCode",
+          "notice"
+        ]
       },
       "options": {
         "type": "object",
@@ -135,19 +154,27 @@
                   "oneOf": [
                     {
                       "title": "Default Logging",
-                      "enum": [""]
+                      "enum": [
+                        ""
+                      ]
                     },
                     {
                       "title": "Standard Logging",
-                      "enum": ["standard"]
+                      "enum": [
+                        "standard"
+                      ]
                     },
                     {
                       "title": "No Logging",
-                      "enum": ["none"]
+                      "enum": [
+                        "none"
+                      ]
                     },
                     {
                       "title": "Debug Logging",
-                      "enum": ["debug"]
+                      "enum": [
+                        "debug"
+                      ]
                     }
                   ],
                   "condition": {
@@ -155,7 +182,11 @@
                   }
                 }
               },
-              "required": ["lockId", "configLockName", "logging"]
+              "required": [
+                "lockId",
+                "configLockName",
+                "logging"
+              ]
             },
             "uniqueItems": true
           },
@@ -180,26 +211,37 @@
             "oneOf": [
               {
                 "title": "Default Logging",
-                "enum": [""]
+                "enum": [
+                  ""
+                ]
               },
               {
                 "title": "Standard Logging",
-                "enum": ["standard"]
+                "enum": [
+                  "standard"
+                ]
               },
               {
                 "title": "No Logging",
-                "enum": ["none"]
+                "enum": [
+                  "none"
+                ]
               },
               {
                 "title": "Debug Logging",
-                "enum": ["debug"]
+                "enum": [
+                  "debug"
+                ]
               }
             ]
           }
         }
       }
     },
-    "required": ["name", "credentials"]
+    "required": [
+      "name",
+      "credentials"
+    ]
   },
   "layout": [
     {
@@ -207,7 +249,14 @@
       "title": "August Account Info",
       "expandable": true,
       "expanded": false,
-      "items": ["credentials.augustId", "credentials.password", "credentials.validateCode", "credentials.installId", "credentials.isValidated"]
+      "items": [
+        "credentials.augustId",
+        "credentials.password",
+        "credentials.validateCode",
+        "credentials.installId",
+        "credentials.isValidated",
+        "credentials.contryCode"
+      ]
     },
     {
       "type": "fieldset",
