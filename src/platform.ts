@@ -230,55 +230,55 @@ export class AugustPlatform implements DynamicPlatformPlugin {
    * This method is used to discover the your location and devices.
    */
   async discoverDevices() {
-    try {
-      await this.augustCredentials();
-      // August Locks
-      const devices = await this.august.details();
-      let deviceLists: any[];
-      if (devices.length > 1) {
-        deviceLists = devices;
-        this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
-      } else {
-        deviceLists = [devices];
-        this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
-      }
-      if (!this.config.options?.devices) {
-        this.debugWarnLog(`August Platform Config Not Set: ${superStringify(this.config.options?.devices)}`);
-        const devices = deviceLists.map((v: any) => v);
-        for (const device of devices) {
-          if (device.configDeviceName) {
-            device.deviceName = device.configDeviceName;
-          }
-          this.debugLog(`device: ${superStringify(device)}`);
-          this.createLock(device);
-        }
-      } else if (this.config.options.devices) {
-        this.debugWarnLog(`August Platform Config Set: ${superStringify(this.config.options?.devices)}`);
-        const deviceConfigs = this.config.options?.devices;
-
-        const mergeBylockId = (a1: { lockId: string }[], a2: any[]) =>
-          a1.map((itm: { lockId: string }) => ({
-            ...a2.find(
-              (item: { lockId: string }) =>
-                item.lockId.toUpperCase().replace(/[^A-Z0-9]+/g, '') === itm.lockId.toUpperCase().replace(/[^A-Z0-9]+/g, '') && item,
-            ),
-            ...itm,
-          }));
-        const devices = mergeBylockId(deviceLists, deviceConfigs);
-        this.debugLog(`August Lock(s): ${superStringify(devices)}`);
-        for (const device of devices) {
-          if (device.configDeviceName) {
-            device.deviceName = device.configDeviceName;
-          }
-          this.debugLog(`device: ${superStringify(device)}`);
-          this.createLock(device);
-        }
-      } else {
-        this.errorLog('August ID & Password Supplied, Issue with Auth.');
-      }
-    } catch (e: any) {
-      this.errorLog(`Discover Devices 2: ${e}`);
+    //try {
+    await this.augustCredentials();
+    // August Locks
+    const devices = await this.august.details();
+    let deviceLists: any[];
+    if (devices.length > 1) {
+      deviceLists = devices;
+      this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
+    } else {
+      deviceLists = [devices];
+      this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
     }
+    if (!this.config.options?.devices) {
+      this.debugWarnLog(`August Platform Config Not Set: ${superStringify(this.config.options?.devices)}`);
+      const devices = deviceLists.map((v: any) => v);
+      for (const device of devices) {
+        if (device.configDeviceName) {
+          device.deviceName = device.configDeviceName;
+        }
+        this.debugLog(`device: ${superStringify(device)}`);
+        this.createLock(device);
+      }
+    } else if (this.config.options.devices) {
+      this.debugWarnLog(`August Platform Config Set: ${superStringify(this.config.options?.devices)}`);
+      const deviceConfigs = this.config.options?.devices;
+
+      const mergeBylockId = (a1: { lockId: string }[], a2: any[]) =>
+        a1.map((itm: { lockId: string }) => ({
+          ...a2.find(
+            (item: { lockId: string }) =>
+              item.lockId.toUpperCase().replace(/[^A-Z0-9]+/g, '') === itm.lockId.toUpperCase().replace(/[^A-Z0-9]+/g, '') && item,
+          ),
+          ...itm,
+        }));
+      const devices = mergeBylockId(deviceLists, deviceConfigs);
+      this.debugLog(`August Lock(s): ${superStringify(devices)}`);
+      for (const device of devices) {
+        if (device.configDeviceName) {
+          device.deviceName = device.configDeviceName;
+        }
+        this.debugLog(`device: ${superStringify(device)}`);
+        this.createLock(device);
+      }
+    } else {
+      this.errorLog('August ID & Password Supplied, Issue with Auth.');
+    }
+    /*} catch (e: any) {
+      this.errorLog(`Discover Devices 2: ${e}`);
+    }*/
   }
 
   private async createLock(device: device & devicesConfig) {
