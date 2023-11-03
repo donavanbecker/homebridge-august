@@ -30,7 +30,7 @@
               "type": "password"
             }
           },
-          "contryCode": {
+          "countryCode": {
             "type": "string",
             "title": "Country Code",
             "placeholder": "US"
@@ -255,7 +255,7 @@
         "credentials.validateCode",
         "credentials.installId",
         "credentials.isValidated",
-        "credentials.contryCode"
+        "credentials.countryCode"
       ]
     },
     {
