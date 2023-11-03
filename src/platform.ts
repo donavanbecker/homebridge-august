@@ -204,7 +204,8 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.account['pnSubKey'] = this.config.credentials.pnSubKey;
       this.warnLog(`pnSubKey: ${this.account.pnSubKey}`);
     }
-    this.august = new August(this.config.credentials);
+    this.debugLog(`August Credentials: ${superStringify(this.account)}`);
+    this.august = new August(this.account);
     this.debugLog(`August Credentials: ${superStringify(this.august)}`);
   }
 
