@@ -120,9 +120,6 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       if (!this.config.credentials.password) {
         throw 'Missing August Password';
       }
-      if (!this.config.credentials.countryCode) {
-        this.config.credentials!.countryCode = 'US';
-      }
     }
   }
 

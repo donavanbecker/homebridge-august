@@ -33,7 +33,7 @@
           "contryCode": {
             "type": "string",
             "title": "Country Code",
-            "default": "US"
+            "placeholder": "US"
           },
           "apiKey": {
             "type": "string",
