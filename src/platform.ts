@@ -120,9 +120,6 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       if (!this.config.credentials.password) {
         throw 'Missing August Password';
       }
-      if (!this.config.credentials.countryCode) {
-        this.config.credentials!.countryCode = 'US';
-      }
     }
   }
 
@@ -194,8 +191,14 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       installId: this.config.credentials.installId,
       augustId: this.config.credentials.augustId,
       password: this.config.credentials.password,
-      countryCode: this.config.credentials.countryCode,
     };
+    if (this.config.credentials.countryCode !== undefined) {
+      this.account['countryCode'] = this.config.credentials.countryCode;
+      this.warnLog(`countryCode: ${this.account.countryCode}`);
+    } else {
+      this.config.credentials!.countryCode = 'US';
+      this.account['countryCode'] = this.config.credentials.countryCode;
+    }
     if (this.config.credentials.apiKey !== undefined) {
       this.account['apiKey'] = this.config.credentials.apiKey;
       this.warnLog(`apiKey: ${this.account.apiKey}`);
@@ -204,7 +207,8 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.account['pnSubKey'] = this.config.credentials.pnSubKey;
       this.warnLog(`pnSubKey: ${this.account.pnSubKey}`);
     }
-    this.august = new August(this.config.credentials);
+    this.debugLog(`August Credentials: ${superStringify(this.account)}`);
+    this.august = new August(this.account);
     this.debugLog(`August Credentials: ${superStringify(this.august)}`);
   }
 
