@@ -169,5 +169,3 @@ dist
 .yarn/build-state.yml
 .pnp.\*
 
-# Plugin Folder
-august/
