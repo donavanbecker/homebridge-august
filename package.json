@@ -14,7 +14,7 @@
     "url": "https://github.com/donavanbecker/homebridge-august/issues"
   },
   "engines": {
-    "homebridge": "^1.6.1",
+    "homebridge": "^1.7.0",
     "node": "^18 || ^20"
   },
   "main": "dist/index.js",
