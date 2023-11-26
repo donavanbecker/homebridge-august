@@ -1,10 +1,11 @@
 {
-  "displayName": "Homebridge August",
+  "displayName": "August",
   "name": "homebridge-august",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "The [Homebridge](https://homebridge.io) August plugin allows you to access your [August](https://august.com) & [Yale](https://shopyalehome.com) device(s) from HomeKit.",
   "author": "donavanbecker",
   "license": "Apache-2.0",
+  "icon": "https://raw.githubusercontent.com/donavanbecker/homebridge-august/beta-1.3.2/branding/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/donavanbecker/homebridge-august.git"
@@ -19,11 +20,11 @@
   "main": "dist/index.js",
   "scripts": {
     "check": "npm install && npm outdated",
-    "update": "npm run check && ncu -u && npm update && npm install",
+    "update": "ncu -u && npm update && npm install",
     "lint": "eslint src/**.ts",
     "watch": "npm run build && npm link && nodemon",
     "build": "rimraf ./dist && tsc",
-    "prepublishOnly": "npm run lint && npm run build",
+    "prepublishOnly": "npm run update && npm run lint && npm run build",
     "postpublish": "npm run clean",
     "clean": "rimraf ./dist",
     "test": "eslint src/**.ts"
@@ -38,10 +39,6 @@
       "url": "https://github.com/sponsors/donavanbecker"
     }
   ],
-  "publishConfig": {
-    "access": "public",
-    "@donavanbecker:registry": "https://npm.pkg.github.com/"
-  },
   "keywords": [
     "homebridge-plugin",
     "august",
@@ -55,15 +52,15 @@
     "super-stringify": "^1.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.9.0",
-    "@typescript-eslint/eslint-plugin": "^6.10.0",
-    "@typescript-eslint/parser": "^6.10.0",
-    "eslint": "^8.53.0",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.12.0",
+    "@typescript-eslint/parser": "^6.12.0",
+    "eslint": "^8.54.0",
     "homebridge": "^1.7.0",
     "nodemon": "^3.0.1",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2",
-    "npm-check-updates": "^16.14.6"
+    "typescript": "^5.3.2",
+    "npm-check-updates": "^16.14.11"
   }
 }
