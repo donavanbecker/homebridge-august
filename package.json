@@ -21,10 +21,12 @@
   "scripts": {
     "check": "npm install && npm outdated",
     "update": "ncu -u && npm update && npm install",
+    "updateDependencies": "npm run check && npm run update",
     "lint": "eslint src/**.ts",
-    "watch": "npm run build && npm link && nodemon",
+    "watch": "npm run build && npm run plugin-ui && npm link && nodemon",
+    "plugin-ui": "rsync ./src/homebridge-ui/public/index.html ./dist/homebridge-ui/public/",
     "build": "rimraf ./dist && tsc",
-    "prepublishOnly": "npm run update && npm run lint && npm run build",
+    "prepublishOnly": "npm run lint && npm run build && npm run plugin-ui",
     "postpublish": "npm run clean",
     "clean": "rimraf ./dist",
     "test": "eslint src/**.ts"
@@ -46,21 +48,20 @@
     "lock"
   ],
   "dependencies": {
-    "august-api": "^1.5.1",
-    "rxjs": "^7.8.1",
     "@homebridge/plugin-ui-utils": "^1.0.1",
-    "super-stringify": "^1.0.0"
+    "rxjs": "^7.8.1",
+    "august-api": "^1.5.1"
   },
   "devDependencies": {
-    "@types/node": "^20.11.3",
+    "@types/node": "^20.11.5",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
     "eslint": "^8.56.0",
     "homebridge": "^1.7.0",
-    "nodemon": "^3.0.2",
+    "nodemon": "^3.0.3",
+    "npm-check-updates": "^16.14.12",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3",
-    "npm-check-updates": "^16.14.12"
+    "typescript": "^5.3.3"
   }
 }

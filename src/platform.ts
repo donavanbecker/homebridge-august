@@ -1,5 +1,4 @@
 import August from 'august-api';
-import superStringify from 'super-stringify';
 import { readFileSync, writeFileSync } from 'fs';
 import { LockMechanism } from './devices/lock';
 import { API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, Service } from 'homebridge';
@@ -99,7 +98,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       platformConfig['pushRate'] = this.config.options.pushRate;
     }
     if (Object.entries(platformConfig).length !== 0) {
-      this.infoLog(`Platform Config: ${superStringify(platformConfig)}`);
+      this.infoLog(`Platform Config: ${JSON.stringify(platformConfig)}`);
     }
 
     if (!this.config.options.refreshRate) {
@@ -207,9 +206,9 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.account['pnSubKey'] = this.config.credentials.pnSubKey;
       this.warnLog(`pnSubKey: ${this.account.pnSubKey}`);
     }
-    this.debugLog(`August Credentials: ${superStringify(this.account)}`);
+    this.debugLog(`August Credentials: ${JSON.stringify(this.account)}`);
     this.august = new August(this.account);
-    this.debugLog(`August Credentials: ${superStringify(this.august)}`);
+    this.debugLog(`August Credentials: ${JSON.stringify(this.august)}`);
   }
 
   async pluginConfig() {
@@ -247,17 +246,17 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
       }
       if (!this.config.options?.devices) {
-        this.debugWarnLog(`August Platform Config Not Set: ${superStringify(this.config.options?.devices)}`);
+        this.debugWarnLog(`August Platform Config Not Set: ${JSON.stringify(this.config.options?.devices)}`);
         const devices = deviceLists.map((v: any) => v);
         for (const device of devices) {
           if (device.configDeviceName) {
             device.deviceName = device.configDeviceName;
           }
-          this.debugLog(`device: ${superStringify(device)}`);
+          this.debugLog(`device: ${JSON.stringify(device)}`);
           this.createLock(device);
         }
       } else if (this.config.options.devices) {
-        this.debugWarnLog(`August Platform Config Set: ${superStringify(this.config.options?.devices)}`);
+        this.debugWarnLog(`August Platform Config Set: ${JSON.stringify(this.config.options?.devices)}`);
         const deviceConfigs = this.config.options?.devices;
 
         const mergeBylockId = (a1: { lockId: string }[], a2: any[]) =>
@@ -269,12 +268,12 @@ export class AugustPlatform implements DynamicPlatformPlugin {
             ...itm,
           }));
         const devices = mergeBylockId(deviceLists, deviceConfigs);
-        this.debugLog(`August Lock(s): ${superStringify(devices)}`);
+        this.debugLog(`August Lock(s): ${JSON.stringify(devices)}`);
         for (const device of devices) {
           if (device.configDeviceName) {
             device.deviceName = device.configDeviceName;
           }
-          this.debugLog(`device: ${superStringify(device)}`);
+          this.debugLog(`device: ${JSON.stringify(device)}`);
           this.createLock(device);
         }
       } else {

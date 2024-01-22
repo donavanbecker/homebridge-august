@@ -2,7 +2,6 @@ import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { interval, Subject } from 'rxjs';
 import { debounceTime, skipWhile, take, tap } from 'rxjs/operators';
 import { AugustPlatform } from '../platform';
-import superStringify from 'super-stringify';
 import { device, devicesConfig } from '../settings';
 
 /**
@@ -219,7 +218,7 @@ export class LockMechanism {
       // Update Lock Details
       const lockDetails = await this.platform.august.details(this.device.lockId);
       if (lockDetails) {
-        this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
+        this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${JSON.stringify(lockDetails)}`);
 
         // Get Lock Status (use August-api helper function to resolve state)
         const lockStatus = lockDetails.LockStatus;
@@ -248,14 +247,14 @@ export class LockMechanism {
           this.closed = lockStatus.state.closed;
         }
       } else {
-        this.debugErrorLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${superStringify(lockDetails)}`);
+        this.debugErrorLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${JSON.stringify(lockDetails)}`);
       }
       // Update HomeKit
       this.parseStatus();
       this.updateHomeKitCharacteristics();
     } catch (e: any) {
       this.errorLog(`refreshStatus: ${e}`);
-      this.errorLog(`Lock: ${this.accessory.displayName} failed lockStatus (refreshStatus), Error Message: ${superStringify(e.message)}`);
+      this.errorLog(`Lock: ${this.accessory.displayName} failed lockStatus (refreshStatus), Error Message: ${JSON.stringify(e.message)}`);
     }
   }
 
@@ -268,17 +267,17 @@ export class LockMechanism {
       if (this.LockTargetState === this.platform.Characteristic.LockTargetState.UNSECURED) {
         this.debugWarnLog(`Lock: ${this.accessory.displayName} Sending request to August API: Unlock (${this.LockTargetState})`);
         const lockStatus = await this.platform.august.unlock(this.device.lockId);
-        this.debugWarnLog(`Lock: ${this.accessory.displayName} (pushChanges-unlock) lockStatus: ${superStringify(lockStatus)}`);
+        this.debugWarnLog(`Lock: ${this.accessory.displayName} (pushChanges-unlock) lockStatus: ${JSON.stringify(lockStatus)}`);
       } else if (this.LockTargetState === this.platform.Characteristic.LockTargetState.SECURED) {
         this.debugWarnLog(`Lock: ${this.accessory.displayName} Sending request to August API: Lock (${this.LockTargetState})`);
         const lockStatus = await this.platform.august.lock(this.device.lockId);
-        this.debugWarnLog(`Lock: ${this.accessory.displayName} (pushChanges-lock) lockStatus: ${superStringify(lockStatus)}`);
+        this.debugWarnLog(`Lock: ${this.accessory.displayName} (pushChanges-lock) lockStatus: ${JSON.stringify(lockStatus)}`);
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges) failed, this.LockTargetState: ${this.LockTargetState}`);
       }
     } catch (e: any) {
       this.errorLog(`pushChanges: ${e}`);
-      this.errorLog(`Lock: ${this.accessory.displayName} failed pushChanges, Error Message: ${superStringify(e.message)}`);
+      this.errorLog(`Lock: ${this.accessory.displayName} failed pushChanges, Error Message: ${JSON.stringify(e.message)}`);
     }
   }
 
@@ -346,7 +345,7 @@ export class LockMechanism {
   async subscribeAugust(): Promise<void> {
     await this.platform.augustCredentials();
     await this.platform.august.subscribe(this.device.lockId, (AugustEvent: any, timestamp: any) => {
-      this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${superStringify(AugustEvent)}, ${superStringify(timestamp)}`);
+      this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${JSON.stringify(AugustEvent)}, ${JSON.stringify(timestamp)}`);
       //LockCurrentState
       if (!this.hide_lock) {
         if (AugustEvent.state.unlocked) {
@@ -443,7 +442,7 @@ export class LockMechanism {
       config['hide_lock'] = this.hide_lock;
     }
     if (Object.entries(config).length !== 0) {
-      this.infoLog(`Lock: ${this.accessory.displayName} Config: ${superStringify(config)}`);
+      this.infoLog(`Lock: ${this.accessory.displayName} Config: ${JSON.stringify(config)}`);
     }
   }
 
