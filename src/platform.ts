@@ -42,17 +42,6 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     this.logType();
     this.infoLog((`Finished initializing platform: ${config.name}`));
 
-    this.debugLog(`Finished initializing platform: ${this.config.name}`);
-    // only load if configured
-    if (!this.config) {
-      return;
-    }
-
-    // HOOBS notice
-    if (__dirname.includes('hoobs')) {
-      this.warnLog('This plugin has not been tested under HOOBS, it is highly recommended that ' + 'you switch to Homebridge: https://git.io/Jtxb0');
-    }
-
     // verify the config
     try {
       this.verifyConfig();
