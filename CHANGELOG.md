@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [2.0.0](https://github.com/donavanbecker/homebridge-august/releases/tag/v2.0.0) (2024-01-31)
+
+### What's Changes
+- Moved from CommonJS to ES Module
+- Housekeeping and updated dependencies.
+
+**Full Changelog**: https://github.com/donavanbecker/homebridge-august/compare/v1.3.4...v2.0.0
+
 ## [1.3.4](https://github.com/donavanbecker/homebridge-august/releases/tag/v1.3.4) (2024-01-15)
 
 ### What's Changes

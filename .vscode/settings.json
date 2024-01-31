@@ -24,5 +24,6 @@
   ],
   "[json]": {
     "editor.defaultFormatter": "vscode.json-language-features"
-  }
+  },
+  "codeQL.githubDatabase.update": "never"
 }

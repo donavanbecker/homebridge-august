@@ -3,6 +3,7 @@
   "pluginType": "platform",
   "singular": true,
   "customUi": true,
+  "customUiPath": "./dist/homebridge-ui",
   "headerDisplay": "<p align='center'><img width='100px' src='https://user-images.githubusercontent.com/9875439/102681754-ac2eb800-4189-11eb-8e17-7c47c804484b.png'></p>\n\nThe **August** plugin allows you to control August Devices. \n\nTo get started link your August Account.\n\n1. Input your August E-mail/Phone Number into the August Account Info.\n\n2.Restart Homebridge to receive an August Validate Code.\n\n3. Input your Validate Code into the August Account Info.\n\n4. Finally Restart Homebridge.",
   "footerDisplay": "Please raise any issues on our [project page](https://github.com/donavanbecker/homebridge-august/issues).\n\nIf you would like to have other August Devices added to this plugin fill out [Feature Request Form](https://github.com/donavanbecker/homebridge-august/issues/new?assignees=&labels=&template=feature_request.md).",
   "schema": {
@@ -19,6 +20,7 @@
           "augustId": {
             "title": "August ID",
             "type": "string",
+            "placeholder": "E-mail or Phone Number",
             "x-schema-form": {
               "type": "username"
             }
@@ -26,37 +28,170 @@
           "password": {
             "title": "August Password",
             "type": "string",
+            "placeholder": "Password",
             "x-schema-form": {
               "type": "password"
+            },
+            "condition": {
+              "functionBody": "return (model.credentials && model.credentials.augustId);"
             }
           },
           "countryCode": {
             "type": "string",
             "title": "Country Code",
-            "placeholder": "US"
+            "placeholder": "US",
+            "condition": {
+              "functionBody": "return (model.credentials && model.credentials.augustId && model.credentials.password);"
+            },
+            "pattern": "^[A-Z]{2}$",
+            "patternErrorMessage": "Must be a valid country code",
+            "minLength": 2,
+            "maxLength": 2,
+            "validation": "countryCode",
+            "enum": [
+              "US",
+              "CA",
+              "GB",
+              "DE",
+              "AT",
+              "IE",
+              "ES",
+              "FR",
+              "BE",
+              "NL",
+              "LU",
+              "CH",
+              "IT",
+              "JP",
+              "CN",
+              "SG",
+              "AU",
+              "NZ",
+              "HK",
+              "KR",
+              "TW",
+              "MX",
+              "BR",
+              "AR",
+              "CL",
+              "CO",
+              "PE",
+              "UY",
+              "CR",
+              "EC",
+              "SV",
+              "GT",
+              "HN",
+              "NI",
+              "PA",
+              "PY",
+              "PR",
+              "VE",
+              "IN",
+              "AE",
+              "QA",
+              "SA",
+              "KW",
+              "BH",
+              "OM",
+              "EG",
+              "ZA",
+              "RU",
+              "TR",
+              "IL",
+              "DK",
+              "SE",
+              "NO",
+              "FI",
+              "PL",
+              "CZ",
+              "SK",
+              "PT",
+              "GR",
+              "HU",
+              "RO",
+              "BG",
+              "HR",
+              "SI",
+              "RS",
+              "LV",
+              "LT",
+              "EE",
+              "IS",
+              "MT",
+              "CY"
+            ],
+            "x-schema-form": {
+              "type": "select"
+            }
           },
           "apiKey": {
             "type": "string",
-            "title": "apiKey"
+            "title": "apiKey",
+            "placeholder": "7f0dd80d-8531-4f8d-ba9b-3b0c9e6f8e4b",
+            "x-schema-form": {
+              "type": "apiKey"
+            },
+            "condition": {
+              "functionBody": "return (model.credentials && model.credentials.augustId && model.credentials.password && model.credentials.countryCode);"
+            }
           },
           "pnSubKey": {
             "type": "string",
-            "title": "pnSubKey"
+            "title": "pnSubKey",
+            "placeholder": "sub-c-91d9b2e2-8b48-11e9-8b87-0619f8945a4f",
+            "x-schema-form": {
+              "type": "pnSubKey"
+            },
+            "condition": {
+              "functionBody": "return (model.credentials && model.credentials.augustId && model.credentials.password && model.credentials.countryCode);"
+            }
           },
           "installId": {
             "title": "Install ID",
-            "type": "string"
+            "type": "string",
+            "placeholder": "00000000-0000-0000-0000-000000000000",
+            "x-schema-form": {
+              "type": "installId"
+            },
+            "condition": {
+              "functionBody": "return (model.credentials && model.credentials.augustId && model.credentials.password && model.credentials.countryCode && !model.credentials.isValidated);"
+            },
+            "pattern": "^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$",
+            "patternErrorMessage": "Must be a valid UUID",
+            "minLength": 36,
+            "maxLength": 36,
+            "validation": "uuid",
+            "notitle": true,
+            "description": "This is a unique identifier for your device. It is generated by the plugin and is not configurable."
           },
           "validateCode": {
             "title": "August  Verification Code",
             "type": "string",
             "x-schema-form": {
               "type": "one-time-code"
-            }
+            },
+            "condition": {
+              "functionBody": "return (model.credentials && model.credentials.augustId && model.credentials.password && model.credentials.countryCode && !model.credentials.isValidated);"
+            },
+            "pattern": "^[0-9]{6}$",
+            "patternErrorMessage": "Must be a valid verification code",
+            "minLength": 6,
+            "maxLength": 6,
+            "validation": "verificationCode",
+            "description": "This is a unique verification code that is sent to your Email or Phone on your August account. It is generated by the plugin."
           },
           "isValidated": {
             "title": "Validated",
-            "type": "boolean"
+            "type": "boolean",
+            "default": false,
+            "condition": {
+              "functionBody": "return (model.credentials && model.credentials.augustId && model.credentials.password && model.credentials.countryCode);"
+            },
+            "description": "This indicates if the verification code has been validated. It is generated by the plugin and is not configurable.",
+            "x-schema-form": {
+              "type": "checkbox"
+            }
           },
           "notice": {
             "title": "Notice",
@@ -253,9 +388,17 @@
         "credentials.augustId",
         "credentials.password",
         "credentials.validateCode",
-        "credentials.installId",
-        "credentials.isValidated",
-        "credentials.countryCode"
+        {
+          "type": "fieldset",
+          "title": "Advanced August Account Settings",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "credentials.countryCode",
+            "credentials.isValidated",
+            "credentials.installId"
+          ]
+        }
       ]
     },
     {

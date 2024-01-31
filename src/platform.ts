@@ -1,9 +1,8 @@
-import August from 'august-api';
-import superStringify from 'super-stringify';
+import August from 'august-yale';
 import { readFileSync, writeFileSync } from 'fs';
-import { LockMechanism } from './devices/lock';
-import { API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, Service } from 'homebridge';
-import { AugustPlatformConfig, PLUGIN_NAME, PLATFORM_NAME, device, devicesConfig } from './settings';
+import { LockMechanism } from './devices/lock.js';
+import { API, DynamicPlatformPlugin, Logging, PlatformAccessory } from 'homebridge';
+import { AugustPlatformConfig, PLUGIN_NAME, PLATFORM_NAME, device, devicesConfig } from './settings.js';
 
 /**
  * HomebridgePlatform
@@ -11,31 +10,37 @@ import { AugustPlatformConfig, PLUGIN_NAME, PLATFORM_NAME, device, devicesConfig
  * parse the user config and discover/register accessories with Homebridge.
  */
 export class AugustPlatform implements DynamicPlatformPlugin {
-  public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
+  public accessories: PlatformAccessory[];
+  public readonly api: API;
+  public readonly log: Logging;
+  public config!: AugustPlatformConfig;
 
-  // this is used to track restored cached accessories
-  public readonly accessories: PlatformAccessory[] = [];
+  public platformLogging!: string;
+  public debugMode!: boolean;
 
   version = process.env.npm_package_version || '1.1.0';
-  august: August;
+  august!: August;
   account: any;
-  debugMode!: boolean;
-  platformLogging!: string;
   registeringDevice!: boolean;
 
-  constructor(public readonly log: Logger, public readonly config: AugustPlatformConfig, public readonly api: API) {
-    this.logs();
-    this.debugLog(`Finished initializing platform: ${this.config.name}`);
-    // only load if configured
-    if (!this.config) {
+  constructor(log: Logging, config: AugustPlatformConfig, api: API) {
+    this.accessories = [];
+    this.api = api;
+    this.log = log;
+
+    if (!config) {
       return;
     }
 
-    // HOOBS notice
-    if (__dirname.includes('hoobs')) {
-      this.warnLog('This plugin has not been tested under HOOBS, it is highly recommended that ' + 'you switch to Homebridge: https://git.io/Jtxb0');
-    }
+    // Plugin options into our config variables.
+    this.config = {
+      platform: 'August',
+      name: config.name,
+      credentials: config.credentials, // Fix: Update the type to 'credentials'
+      options: config.options,
+    };
+    this.logType();
+    this.infoLog((`Finished initializing platform: ${config.name}`));
 
     // verify the config
     try {
@@ -99,7 +104,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       platformConfig['pushRate'] = this.config.options.pushRate;
     }
     if (Object.entries(platformConfig).length !== 0) {
-      this.infoLog(`Platform Config: ${superStringify(platformConfig)}`);
+      this.infoLog(`Platform Config: ${JSON.stringify(platformConfig)}`);
     }
 
     if (!this.config.options.refreshRate) {
@@ -192,13 +197,11 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       augustId: this.config.credentials.augustId,
       password: this.config.credentials.password,
     };
-    if (this.config.credentials.countryCode !== undefined) {
-      this.account['countryCode'] = this.config.credentials.countryCode;
-      this.warnLog(`countryCode: ${this.account.countryCode}`);
-    } else {
+    if (this.config.credentials.countryCode === undefined) {
       this.config.credentials!.countryCode = 'US';
-      this.account['countryCode'] = this.config.credentials.countryCode;
     }
+    this.account['countryCode'] = this.config.credentials.countryCode;
+    this.debugWarnLog(`countryCode: ${this.account.countryCode}`);
     if (this.config.credentials.apiKey !== undefined) {
       this.account['apiKey'] = this.config.credentials.apiKey;
       this.warnLog(`apiKey: ${this.account.apiKey}`);
@@ -207,9 +210,9 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.account['pnSubKey'] = this.config.credentials.pnSubKey;
       this.warnLog(`pnSubKey: ${this.account.pnSubKey}`);
     }
-    this.debugLog(`August Credentials: ${superStringify(this.account)}`);
+    this.debugLog(`August Credentials: ${JSON.stringify(this.account)}`);
     this.august = new August(this.account);
-    this.debugLog(`August Credentials: ${superStringify(this.august)}`);
+    this.debugLog(`August Credentials: ${JSON.stringify(this.august)}`);
   }
 
   async pluginConfig() {
@@ -247,17 +250,17 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
       }
       if (!this.config.options?.devices) {
-        this.debugWarnLog(`August Platform Config Not Set: ${superStringify(this.config.options?.devices)}`);
+        this.debugWarnLog(`August Platform Config Not Set: ${JSON.stringify(this.config.options?.devices)}`);
         const devices = deviceLists.map((v: any) => v);
         for (const device of devices) {
           if (device.configDeviceName) {
             device.deviceName = device.configDeviceName;
           }
-          this.debugLog(`device: ${superStringify(device)}`);
+          this.debugLog(`device: ${JSON.stringify(device)}`);
           this.createLock(device);
         }
       } else if (this.config.options.devices) {
-        this.debugWarnLog(`August Platform Config Set: ${superStringify(this.config.options?.devices)}`);
+        this.debugWarnLog(`August Platform Config Set: ${JSON.stringify(this.config.options?.devices)}`);
         const deviceConfigs = this.config.options?.devices;
 
         const mergeBylockId = (a1: { lockId: string }[], a2: any[]) =>
@@ -269,12 +272,12 @@ export class AugustPlatform implements DynamicPlatformPlugin {
             ...itm,
           }));
         const devices = mergeBylockId(deviceLists, deviceConfigs);
-        this.debugLog(`August Lock(s): ${superStringify(devices)}`);
+        this.debugLog(`August Lock(s): ${JSON.stringify(devices)}`);
         for (const device of devices) {
           if (device.configDeviceName) {
             device.deviceName = device.configDeviceName;
           }
-          this.debugLog(`device: ${superStringify(device)}`);
+          this.debugLog(`device: ${JSON.stringify(device)}`);
           this.createLock(device);
         }
       } else {
@@ -344,12 +347,12 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   }
 
   private registerDevice(device: device & devicesConfig) {
-    if (!device.hide_device && !this.config.disablePlugin) {
+    if (!device.hide_device) {
       this.registeringDevice = true;
       this.debugLog(`Device: ${device.LockName} Enabled`);
     } else {
       this.registeringDevice = false;
-      this.debugLog(`Device: ${device.LockName} Plugin or Device Disabled`);
+      this.debugLog(`Device: ${device.LockName} is Disabled`);
     }
     return this.registeringDevice;
   }
@@ -374,7 +377,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     this.warnLog(`Removing existing accessory from cache: ${device.LockName}`);
   }
 
-  logs() {
+  logType() {
     this.debugMode = process.argv.includes('-D') || process.argv.includes('--debug');
     if (this.config.options?.logging === 'debug' || this.config.options?.logging === 'standard' || this.config.options?.logging === 'none') {
       this.platformLogging = this.config.options!.logging;

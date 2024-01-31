@@ -12,7 +12,6 @@ export const PLUGIN_NAME = 'homebridge-august';
 //Config
 export interface AugustPlatformConfig extends PlatformConfig {
   credentials?: credentials;
-  disablePlugin?: boolean;
   options?: options | Record<string, never>;
 }
 

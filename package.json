@@ -1,10 +1,14 @@
 {
   "displayName": "August",
   "name": "homebridge-august",
-  "version": "1.3.4",
+  "version": "2.0.0",
   "description": "The August plugin allows you to access your August & Yale device(s) from HomeKit.",
-  "author": "donavanbecker",
-  "license": "Apache-2.0",
+  "author": {
+    "name": "donavanbecker",
+    "url": "https://github.com/donavanbecker"
+  },
+  "type": "module",
+  "license": "ISC",
   "icon": "https://raw.githubusercontent.com/donavanbecker/homebridge-august/beta-1.3.2/branding/icon.png",
   "repository": {
     "type": "git",
@@ -21,10 +25,12 @@
   "scripts": {
     "check": "npm install && npm outdated",
     "update": "ncu -u && npm update && npm install",
+    "updateDependencies": "npm run check && npm run update",
     "lint": "eslint src/**.ts",
-    "watch": "npm run build && npm link && nodemon",
+    "watch": "npm run build && npm run plugin-ui && npm link && nodemon",
+    "plugin-ui": "rsync ./src/homebridge-ui/public/index.html ./dist/homebridge-ui/public/",
     "build": "rimraf ./dist && tsc",
-    "prepublishOnly": "npm run update && npm run lint && npm run build",
+    "prepublishOnly": "npm run lint && npm run build && npm run plugin-ui",
     "postpublish": "npm run clean",
     "clean": "rimraf ./dist",
     "test": "eslint src/**.ts"
@@ -46,21 +52,21 @@
     "lock"
   ],
   "dependencies": {
-    "august-api": "^1.5.1",
-    "rxjs": "^7.8.1",
     "@homebridge/plugin-ui-utils": "^1.0.1",
-    "super-stringify": "^1.0.0"
+    "august-yale": "^0.2.0",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@types/node": "^20.11.3",
-    "@typescript-eslint/eslint-plugin": "^6.19.0",
-    "@typescript-eslint/parser": "^6.19.0",
+    "@types/node": "^20.11.13",
+    "@typescript-eslint/eslint-plugin": "^6.20.0",
+    "@typescript-eslint/parser": "^6.20.0",
     "eslint": "^8.56.0",
     "homebridge": "^1.7.0",
-    "nodemon": "^3.0.2",
+    "homebridge-config-ui-x": "4.55.1",
+    "nodemon": "^3.0.3",
+    "npm-check-updates": "^16.14.14",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3",
-    "npm-check-updates": "^16.14.12"
+    "typescript": "^5.3.3"
   }
 }
