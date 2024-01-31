@@ -19,8 +19,6 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   public debugMode!: boolean;
 
   version = process.env.npm_package_version || '1.1.0';
-  august!: August;
-  account: any;
   registeringDevice!: boolean;
 
   constructor(log: Logging, config: AugustPlatformConfig, api: API) {
@@ -65,7 +63,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
         } else if (this.config.credentials?.isValidated) {
           this.debugWarnLog(`augustId: ${this.config.credentials.augustId}, installId: ${this.config.credentials.installId}, password: `
             + `${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
-          this.discoverDevices();
+          await this.discoverDevices();
         } else {
           this.errorLog(`augustId: ${this.config.credentials.augustId}, installId: ${this.config.credentials.installId}, password: `
             + `${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
@@ -146,7 +144,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       await this.augustCredentials();
       if (!this.config.credentials?.isValidated && this.config.credentials?.validateCode) {
         const validateCode = this.config.credentials?.validateCode;
-        const isValidated = await this.august.validate(validateCode);
+        const isValidated = await August.validate(this.config.credentials, validateCode);
         // If validated successfully, set flag for future use, and you can now use the API
         this.config.credentials.isValidated = isValidated;
         // load in the current config
@@ -166,6 +164,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
           return;
         } else {
           await this.discoverDevices();
+          this.debugWarnLog(`isValidated: ${this.config.credentials?.isValidated}`);
         }
       } else {
         // load in the current config
@@ -179,7 +178,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
         // A 6-digit code will be sent to your email or phone (depending on what you used for your augustId).
         // Need some way to get this code from the user.
-        this.august.authorize();
+        August.authorize(this.config.credentials);
         this.warnLog('Input Your August email verification code into the validateCode config and restart Homebridge.');
       }
       //this.verifyConfig();
@@ -192,27 +191,28 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     if (!this.config.credentials) {
       throw 'Missing Credentials';
     }
-    this.account = {
-      installId: this.config.credentials.installId,
-      augustId: this.config.credentials.augustId,
-      password: this.config.credentials.password,
-    };
+    let account: any;
+
+    account['installId'] = this.config.credentials.installId;
+    account['augustId'] = this.config.credentials.augustId;
+    account['password'] = this.config.credentials.password;
+
     if (this.config.credentials.countryCode === undefined) {
       this.config.credentials!.countryCode = 'US';
     }
-    this.account['countryCode'] = this.config.credentials.countryCode;
-    this.debugWarnLog(`countryCode: ${this.account.countryCode}`);
+    account['countryCode'] = this.config.credentials.countryCode;
+    this.debugWarnLog(`countryCode: ${account.countryCode}`);
     if (this.config.credentials.apiKey !== undefined) {
-      this.account['apiKey'] = this.config.credentials.apiKey;
-      this.warnLog(`apiKey: ${this.account.apiKey}`);
+      account['apiKey'] = this.config.credentials.apiKey;
+      this.warnLog(`apiKey: ${account.apiKey}`);
     }
     if (this.config.credentials.pnSubKey !== undefined) {
-      this.account['pnSubKey'] = this.config.credentials.pnSubKey;
-      this.warnLog(`pnSubKey: ${this.account.pnSubKey}`);
+      account['pnSubKey'] = this.config.credentials.pnSubKey;
+      this.warnLog(`pnSubKey: ${account.pnSubKey}`);
     }
-    this.debugLog(`August Credentials: ${JSON.stringify(this.account)}`);
-    this.august = new August(this.account);
-    this.debugLog(`August Credentials: ${JSON.stringify(this.august)}`);
+    this.debugLog(`August Credentials: ${JSON.stringify(account)}`);
+    const augustAccount = new August(account);
+    this.debugLog(`August Credentials: ${JSON.stringify(augustAccount)}`);
   }
 
   async pluginConfig() {
@@ -240,7 +240,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     try {
       await this.augustCredentials();
       // August Locks
-      const devices = await this.august.details();
+      const devices = await August.details(this.config.credentials);
       let deviceLists: any[];
       if (devices.length > 1) {
         deviceLists = devices;
