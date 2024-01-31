@@ -197,13 +197,11 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       augustId: this.config.credentials.augustId,
       password: this.config.credentials.password,
     };
-    if (this.config.credentials.countryCode !== undefined) {
-      this.account['countryCode'] = this.config.credentials.countryCode;
-      this.warnLog(`countryCode: ${this.account.countryCode}`);
-    } else {
+    if (this.config.credentials.countryCode === undefined) {
       this.config.credentials!.countryCode = 'US';
-      this.account['countryCode'] = this.config.credentials.countryCode;
     }
+    this.account['countryCode'] = this.config.credentials.countryCode;
+    this.debugWarnLog(`countryCode: ${this.account.countryCode}`);
     if (this.config.credentials.apiKey !== undefined) {
       this.account['apiKey'] = this.config.credentials.apiKey;
       this.warnLog(`apiKey: ${this.account.apiKey}`);
