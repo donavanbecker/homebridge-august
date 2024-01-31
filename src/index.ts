@@ -1,10 +1,13 @@
-import { API } from 'homebridge';
-import { AugustPlatform } from './platform';
-import { PLATFORM_NAME } from './settings';
-
-/**
- * This method registers the platform with Homebridge
+/* Copyright(C) 2017-2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
+ *
+ * index.ts: homebridge-august plugin registration.
  */
-export = (api: API): void => {
-  api.registerPlatform(PLATFORM_NAME, AugustPlatform);
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
+import { API } from 'homebridge';
+import { AugustPlatform } from './platform.js';
+
+// Register our platform with homebridge.
+export default (api: API): void => {
+
+  api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, AugustPlatform);
 };

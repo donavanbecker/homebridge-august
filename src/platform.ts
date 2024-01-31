@@ -1,8 +1,8 @@
-import August from 'august-api';
+import August from 'august-yale';
 import { readFileSync, writeFileSync } from 'fs';
-import { LockMechanism } from './devices/lock';
-import { API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, Service } from 'homebridge';
-import { AugustPlatformConfig, PLUGIN_NAME, PLATFORM_NAME, device, devicesConfig } from './settings';
+import { LockMechanism } from './devices/lock.js';
+import { API, DynamicPlatformPlugin, Logging, PlatformAccessory } from 'homebridge';
+import { AugustPlatformConfig, PLUGIN_NAME, PLATFORM_NAME, device, devicesConfig } from './settings.js';
 
 /**
  * HomebridgePlatform
@@ -10,21 +10,38 @@ import { AugustPlatformConfig, PLUGIN_NAME, PLATFORM_NAME, device, devicesConfig
  * parse the user config and discover/register accessories with Homebridge.
  */
 export class AugustPlatform implements DynamicPlatformPlugin {
-  public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
+  public accessories: PlatformAccessory[];
+  public readonly api: API;
+  public readonly log: Logging;
+  public config!: AugustPlatformConfig;
 
-  // this is used to track restored cached accessories
-  public readonly accessories: PlatformAccessory[] = [];
+  public platformLogging!: string;
+  public debugMode!: boolean;
 
   version = process.env.npm_package_version || '1.1.0';
-  august: August;
+  august!: August;
   account: any;
-  debugMode!: boolean;
-  platformLogging!: string;
   registeringDevice!: boolean;
 
-  constructor(public readonly log: Logger, public readonly config: AugustPlatformConfig, public readonly api: API) {
-    this.logs();
+  constructor(log: Logging, config: AugustPlatformConfig, api: API) {
+    this.accessories = [];
+    this.api = api;
+    this.log = log;
+
+    if (!config) {
+      return;
+    }
+
+    // Plugin options into our config variables.
+    this.config = {
+      platform: 'August',
+      name: config.name,
+      credentials: config.credentials, // Fix: Update the type to 'credentials'
+      options: config.options,
+    };
+    this.logType();
+    this.infoLog((`Finished initializing platform: ${config.name}`));
+
     this.debugLog(`Finished initializing platform: ${this.config.name}`);
     // only load if configured
     if (!this.config) {
@@ -343,12 +360,12 @@ export class AugustPlatform implements DynamicPlatformPlugin {
   }
 
   private registerDevice(device: device & devicesConfig) {
-    if (!device.hide_device && !this.config.disablePlugin) {
+    if (!device.hide_device) {
       this.registeringDevice = true;
       this.debugLog(`Device: ${device.LockName} Enabled`);
     } else {
       this.registeringDevice = false;
-      this.debugLog(`Device: ${device.LockName} Plugin or Device Disabled`);
+      this.debugLog(`Device: ${device.LockName} is Disabled`);
     }
     return this.registeringDevice;
   }
@@ -373,7 +390,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     this.warnLog(`Removing existing accessory from cache: ${device.LockName}`);
   }
 
-  logs() {
+  logType() {
     this.debugMode = process.argv.includes('-D') || process.argv.includes('--debug');
     if (this.config.options?.logging === 'debug' || this.config.options?.logging === 'standard' || this.config.options?.logging === 'none') {
       this.platformLogging = this.config.options!.logging;
