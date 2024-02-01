@@ -1,4 +1,6 @@
+
 import August from 'august-yale';
+/*import August from '/Users/Shared/GitHub/${}/august-yale/dist/index.js';*/
 import { readFileSync, writeFileSync } from 'fs';
 import { LockMechanism } from './devices/lock.js';
 import { API, DynamicPlatformPlugin, Logging, PlatformAccessory } from 'homebridge';
@@ -20,6 +22,7 @@ export class AugustPlatform implements DynamicPlatformPlugin {
 
   version = process.env.npm_package_version || '1.1.0';
   registeringDevice!: boolean;
+  augustConfig!: August;
 
   constructor(log: Logging, config: AugustPlatformConfig, api: API) {
     this.accessories = [];
@@ -56,20 +59,21 @@ export class AugustPlatform implements DynamicPlatformPlugin {
     this.api.on('didFinishLaunching', async () => {
       this.debugLog('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
+
+    if (this.config.credentials?.isValidated === false || this.config.credentials?.isValidated === undefined) {
+      this.debugWarnLog(`Config Credentials: ${JSON.stringify(this.config.credentials)}`);
       try {
-        if (!this.config.credentials?.isValidated) {
-          this.debugWarnLog(`isValidated: ${this.config.credentials?.isValidated}`);
-          await this.validated();
-        } else if (this.config.credentials?.isValidated) {
-          this.debugWarnLog(`augustId: ${this.config.credentials.augustId}, installId: ${this.config.credentials.installId}, password: `
-            + `${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
-          await this.discoverDevices();
-        } else {
-          this.errorLog(`augustId: ${this.config.credentials.augustId}, installId: ${this.config.credentials.installId}, password: `
-            + `${this.config.credentials.password}, isValidated: ${this.config.credentials?.isValidated}`);
-        }
+        await this.validated();
       } catch (e: any) {
-        this.errorLog(`Discover Devices 1: ${e}`);
+        this.errorLog(`Validate: ${e}`);
+      }
+     } else {
+        this.debugWarnLog(`Config Credentials: ${JSON.stringify(this.config.credentials)}, isValidated: ${this.config.credentials?.isValidated}`);
+        try {
+          await this.discoverDevices();
+        } catch (e: any) {
+          this.errorLog(`Validated, Discover Devices: ${e}`);
+        }
       }
     });
   }
@@ -137,82 +141,62 @@ export class AugustPlatform implements DynamicPlatformPlugin {
    * @param this.config.credentials.validateCode
    */
   async validated() {
-    try {
-      if (!this.config.credentials?.installId) {
-        this.config.credentials!.installId = this.api.hap.uuid.generate(`${this.config.credentials?.augustId}`);
-      }
-      await this.augustCredentials();
-      if (!this.config.credentials?.isValidated && this.config.credentials?.validateCode) {
-        const validateCode = this.config.credentials?.validateCode;
-        const isValidated = await August.validate(validateCode);
-        // If validated successfully, set flag for future use, and you can now use the API
-        this.config.credentials.isValidated = isValidated;
-        // load in the current config
-        const { pluginConfig, currentConfig } = await this.pluginConfig();
-
-        pluginConfig.credentials.isValidated = this.config.credentials?.isValidated;
-        if (this.config.credentials.isValidated) {
-          pluginConfig.credentials.validateCode = undefined;
+        if (!this.config.credentials?.installId) {
+          this.config.credentials!.installId = this.api.hap.uuid.generate(`${this.config.credentials?.augustId}`);
         }
+        await this.augustCredentials();
+        if (!this.config.credentials?.isValidated && this.config.credentials?.validateCode) {
+          const validateCode = this.config.credentials?.validateCode;
+          const isValidated = await August.validate(this.config.credentials!, validateCode);
+          // If validated successfully, set flag for future use, and you can now use the API
+          this.config.credentials.isValidated = isValidated;
+          // load in the current config
+          const { pluginConfig, currentConfig } = await this.pluginConfig();
 
-        this.debugWarnLog(`isValidated: ${pluginConfig.credentials.isValidated}`);
-        this.debugWarnLog(`validateCode: ${pluginConfig.credentials.validateCode}`);
+          pluginConfig.credentials.isValidated = this.config.credentials?.isValidated;
+          if (this.config.credentials.isValidated) {
+            pluginConfig.credentials.validateCode = undefined;
+          }
 
-        // save the config, ensuring we maintain pretty json
-        writeFileSync(this.api.user.configPath(), JSON.stringify(currentConfig, null, 4));
-        if (!isValidated) {
-          return;
+          this.debugWarnLog(`isValidated: ${pluginConfig.credentials.isValidated}`);
+          this.debugWarnLog(`validateCode: ${pluginConfig.credentials.validateCode}`);
+
+          // save the config, ensuring we maintain pretty json
+          writeFileSync(this.api.user.configPath(), JSON.stringify(currentConfig, null, 4));
+          if (!isValidated) {
+            return;
+          } else {
+            try {
+              await this.discoverDevices();
+              this.debugWarnLog(`isValidated: ${this.config.credentials?.isValidated}`);
+            } catch (e: any) {
+              this.errorLog(`Validate, Discover Devices: ${e}`);
+            }
+          }
         } else {
-          await this.discoverDevices();
-          this.debugWarnLog(`isValidated: ${this.config.credentials?.isValidated}`);
+          // load in the current config
+          const { pluginConfig, currentConfig } = await this.pluginConfig();
+          // set the refresh token
+          pluginConfig.credentials.installId = this.config.credentials?.installId;
+
+          this.debugWarnLog(`installId: ${pluginConfig.credentials.installId}`);
+          // save the config, ensuring we maintain pretty json
+          writeFileSync(this.api.user.configPath(), JSON.stringify(currentConfig, null, 4));
+
+          // A 6-digit code will be sent to your email or phone (depending on what you used for your augustId).
+          // Need some way to get this code from the user.
+          August.authorize(this.config.credentials!);
+          this.warnLog('Input Your August email verification code into the validateCode config and restart Homebridge.');
         }
-      } else {
-        // load in the current config
-        const { pluginConfig, currentConfig } = await this.pluginConfig();
-        // set the refresh token
-        pluginConfig.credentials.installId = this.config.credentials?.installId;
-
-        this.debugWarnLog(`installId: ${pluginConfig.credentials.installId}`);
-        // save the config, ensuring we maintain pretty json
-        writeFileSync(this.api.user.configPath(), JSON.stringify(currentConfig, null, 4));
-
-        // A 6-digit code will be sent to your email or phone (depending on what you used for your augustId).
-        // Need some way to get this code from the user.
-        August.authorize(this.config.credentials);
-        this.warnLog('Input Your August email verification code into the validateCode config and restart Homebridge.');
-      }
-      //this.verifyConfig();
-    } catch (e: any) {
-      this.errorLog(`Validated Error: ${e}`);
-    }
   }
 
   async augustCredentials() {
     if (!this.config.credentials) {
       throw 'Missing Credentials';
+    } else {
+      this.augustConfig = new August(this.config.credentials!);
+      this.debugLog(`August Credentials: ${JSON.stringify(this.augustConfig)}`);
     }
-    let account: any;
-
-    account['installId'] = this.config.credentials.installId;
-    account['augustId'] = this.config.credentials.augustId;
-    account['password'] = this.config.credentials.password;
-
-    if (this.config.credentials.countryCode === undefined) {
-      this.config.credentials!.countryCode = 'US';
-    }
-    account['countryCode'] = this.config.credentials.countryCode;
-    this.debugWarnLog(`countryCode: ${account.countryCode}`);
-    if (this.config.credentials.apiKey !== undefined) {
-      account['apiKey'] = this.config.credentials.apiKey;
-      this.warnLog(`apiKey: ${account.apiKey}`);
-    }
-    if (this.config.credentials.pnSubKey !== undefined) {
-      account['pnSubKey'] = this.config.credentials.pnSubKey;
-      this.warnLog(`pnSubKey: ${account.pnSubKey}`);
-    }
-    this.debugLog(`August Credentials: ${JSON.stringify(account)}`);
-    const augustAccount = new August(account);
-    this.debugLog(`August Credentials: ${JSON.stringify(augustAccount)}`);
   }
 
   async pluginConfig() {
@@ -237,54 +221,50 @@ export class AugustPlatform implements DynamicPlatformPlugin {
    * This method is used to discover the your location and devices.
    */
   async discoverDevices() {
-    try {
-      await this.augustCredentials();
-      // August Locks
-      const devices = await August.details(this.config.credentials);
-      let deviceLists: any[];
-      if (devices.length > 1) {
-        deviceLists = devices;
-        this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
-      } else {
-        deviceLists = [devices];
-        this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
-      }
-      if (!this.config.options?.devices) {
-        this.debugWarnLog(`August Platform Config Not Set: ${JSON.stringify(this.config.options?.devices)}`);
-        const devices = deviceLists.map((v: any) => v);
-        for (const device of devices) {
-          if (device.configDeviceName) {
-            device.deviceName = device.configDeviceName;
-          }
-          this.debugLog(`device: ${JSON.stringify(device)}`);
-          this.createLock(device);
+    //await this.augustCredentials();
+    // August Locks
+    const devices = await August.details(this.config.credentials!, '');
+    let deviceLists: any[];
+    if (devices.length > 1) {
+      deviceLists = devices;
+      this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
+    } else {
+      deviceLists = [devices];
+      this.infoLog(`Total August Locks Found: ${deviceLists.length}`);
+    }
+    if (!this.config.options?.devices) {
+      this.debugWarnLog(`August Platform Config Not Set: ${JSON.stringify(this.config.options?.devices)}`);
+      const devices = deviceLists.map((v: any) => v);
+      for (const device of devices) {
+        if (device.configDeviceName) {
+          device.deviceName = device.configDeviceName;
         }
-      } else if (this.config.options.devices) {
-        this.debugWarnLog(`August Platform Config Set: ${JSON.stringify(this.config.options?.devices)}`);
-        const deviceConfigs = this.config.options?.devices;
+        this.debugLog(`August Devices: ${JSON.stringify(device)}`);
+        this.createLock(device);
+      }
+    } else if (this.config.options.devices) {
+      this.debugWarnLog(`August Platform Config Set: ${JSON.stringify(this.config.options?.devices)}`);
+      const deviceConfigs = this.config.options?.devices;
 
-        const mergeBylockId = (a1: { lockId: string }[], a2: any[]) =>
-          a1.map((itm: { lockId: string }) => ({
-            ...a2.find(
-              (item: { lockId: string }) =>
-                item.lockId.toUpperCase().replace(/[^A-Z0-9]+/g, '') === itm.lockId.toUpperCase().replace(/[^A-Z0-9]+/g, '') && item,
-            ),
-            ...itm,
-          }));
-        const devices = mergeBylockId(deviceLists, deviceConfigs);
-        this.debugLog(`August Lock(s): ${JSON.stringify(devices)}`);
-        for (const device of devices) {
-          if (device.configDeviceName) {
-            device.deviceName = device.configDeviceName;
-          }
-          this.debugLog(`device: ${JSON.stringify(device)}`);
-          this.createLock(device);
+      const mergeBylockId = (a1: { lockId: string }[], a2: any[]) =>
+        a1.map((itm: { lockId: string }) => ({
+          ...a2.find(
+            (item: { lockId: string }) =>
+              item.lockId.toUpperCase().replace(/[^A-Z0-9]+/g, '') === itm.lockId.toUpperCase().replace(/[^A-Z0-9]+/g, '') && item,
+          ),
+          ...itm,
+        }));
+      const devices = mergeBylockId(deviceLists, deviceConfigs);
+      this.debugLog(`August Lock(s): ${JSON.stringify(devices)}`);
+      for (const device of devices) {
+        if (device.configDeviceName) {
+          device.deviceName = device.configDeviceName;
         }
-      } else {
-        this.errorLog('August ID & Password Supplied, Issue with Auth.');
+        this.debugLog(`device: ${JSON.stringify(device)}`);
+        this.createLock(device);
       }
-    } catch (e: any) {
-      this.errorLog(`Discover Devices 2: ${e}`);
+    } else {
+      this.errorLog('August ID & Password Supplied, Issue with Auth.');
     }
   }
 

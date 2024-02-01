@@ -4,6 +4,7 @@ import { debounceTime, skipWhile, take, tap } from 'rxjs/operators';
 import { AugustPlatform } from '../platform.js';
 import { AugustPlatformConfig, device, devicesConfig } from '../settings.js';
 import August from 'august-yale';
+/*import August from '/Users/Shared/GitHub/donavanbecker/august-yale/dist/index.js';*/
 
 /**
  * Platform Accessory
@@ -228,15 +229,15 @@ export class LockMechanism {
    */
   async refreshStatus(): Promise<void> {
     try {
-      await this.platform.augustCredentials();
+      //await this.platform.augustCredentials();
       // Update Lock Details
-      const lockDetails: any = await August.details(this.device.lockId);
+      const lockDetails: any = await this.platform.augustConfig.details(this.device.lockId);
       if (lockDetails) {
         this.debugLog(`Lock: ${this.accessory.displayName} lockDetails (refreshStatus): ${JSON.stringify(lockDetails)}`);
 
         // Get Lock Status (use August-api helper function to resolve state)
         const lockStatus = lockDetails.LockStatus;
-        August.addSimpleProps(lockStatus);
+        this.platform.augustConfig.addSimpleProps(lockStatus);
         if (lockStatus.state && !this.hide_lock) {
           this.unlocked = lockStatus.state.unlocked;
           this.state = lockStatus.state;
@@ -280,11 +281,11 @@ export class LockMechanism {
       await this.platform.augustCredentials();
       if (this.LockTargetState === this.hap.Characteristic.LockTargetState.UNSECURED) {
         this.debugWarnLog(`Lock: ${this.accessory.displayName} Sending request to August API: Unlock (${this.LockTargetState})`);
-        const lockStatus = await August.unlock(this.device.lockId);
+        const lockStatus = await this.platform.augustConfig.unlock(this.device.lockId);
         this.debugWarnLog(`Lock: ${this.accessory.displayName} (pushChanges-unlock) lockStatus: ${JSON.stringify(lockStatus)}`);
       } else if (this.LockTargetState === this.hap.Characteristic.LockTargetState.SECURED) {
         this.debugWarnLog(`Lock: ${this.accessory.displayName} Sending request to August API: Lock (${this.LockTargetState})`);
-        const lockStatus = await August.lock(this.device.lockId);
+        const lockStatus = await this.platform.augustConfig.lock(this.device.lockId);
         this.debugWarnLog(`Lock: ${this.accessory.displayName} (pushChanges-lock) lockStatus: ${JSON.stringify(lockStatus)}`);
       } else {
         this.errorLog(`Lock: ${this.accessory.displayName} lockStatus (pushChanges) failed, this.LockTargetState: ${this.LockTargetState}`);
@@ -358,7 +359,7 @@ export class LockMechanism {
 
   async subscribeAugust(): Promise<void> {
     await this.platform.augustCredentials();
-    await August.subscribe(this.device.lockId, (AugustEvent: any, timestamp: any) => {
+    await August.subscribe(this.config.credentials!, this.device.lockId, (AugustEvent: any, timestamp: any) => {
       this.debugLog(`Lock: ${this.accessory.displayName} AugustEvent: ${JSON.stringify(AugustEvent)}, ${JSON.stringify(timestamp)}`);
       //LockCurrentState
       if (!this.hide_lock) {
