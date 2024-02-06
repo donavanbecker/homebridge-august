@@ -60,14 +60,14 @@ export class AugustPlatform implements DynamicPlatformPlugin {
       this.debugLog('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
 
-    if (this.config.credentials?.isValidated === false || this.config.credentials?.isValidated === undefined) {
-      this.debugWarnLog(`Config Credentials: ${JSON.stringify(this.config.credentials)}`);
-      try {
-        await this.validated();
-      } catch (e: any) {
-        this.errorLog(`Validate: ${e}`);
-      }
-     } else {
+      if (this.config.credentials?.isValidated === false || this.config.credentials?.isValidated === undefined) {
+        this.debugWarnLog(`Config Credentials: ${JSON.stringify(this.config.credentials)}`);
+        try {
+          await this.validated();
+        } catch (e: any) {
+          this.errorLog(`Validate: ${e}`);
+        }
+      } else {
         this.debugWarnLog(`Config Credentials: ${JSON.stringify(this.config.credentials)}, isValidated: ${this.config.credentials?.isValidated}`);
         try {
           await this.discoverDevices();
@@ -141,53 +141,53 @@ export class AugustPlatform implements DynamicPlatformPlugin {
    * @param this.config.credentials.validateCode
    */
   async validated() {
-        if (!this.config.credentials?.installId) {
+    if (!this.config.credentials?.installId) {
           this.config.credentials!.installId = this.api.hap.uuid.generate(`${this.config.credentials?.augustId}`);
+    }
+    await this.augustCredentials();
+    if (!this.config.credentials?.isValidated && this.config.credentials?.validateCode) {
+      const validateCode = this.config.credentials?.validateCode;
+      const isValidated = await August.validate(this.config.credentials!, validateCode);
+      // If validated successfully, set flag for future use, and you can now use the API
+      this.config.credentials.isValidated = isValidated;
+      // load in the current config
+      const { pluginConfig, currentConfig } = await this.pluginConfig();
+
+      pluginConfig.credentials.isValidated = this.config.credentials?.isValidated;
+      if (this.config.credentials.isValidated) {
+        pluginConfig.credentials.validateCode = undefined;
+      }
+
+      this.debugWarnLog(`isValidated: ${pluginConfig.credentials.isValidated}`);
+      this.debugWarnLog(`validateCode: ${pluginConfig.credentials.validateCode}`);
+
+      // save the config, ensuring we maintain pretty json
+      writeFileSync(this.api.user.configPath(), JSON.stringify(currentConfig, null, 4));
+      if (!isValidated) {
+        return;
+      } else {
+        try {
+          await this.discoverDevices();
+          this.debugWarnLog(`isValidated: ${this.config.credentials?.isValidated}`);
+        } catch (e: any) {
+          this.errorLog(`Validate, Discover Devices: ${e}`);
         }
-        await this.augustCredentials();
-        if (!this.config.credentials?.isValidated && this.config.credentials?.validateCode) {
-          const validateCode = this.config.credentials?.validateCode;
-          const isValidated = await August.validate(this.config.credentials!, validateCode);
-          // If validated successfully, set flag for future use, and you can now use the API
-          this.config.credentials.isValidated = isValidated;
-          // load in the current config
-          const { pluginConfig, currentConfig } = await this.pluginConfig();
+      }
+    } else {
+      // load in the current config
+      const { pluginConfig, currentConfig } = await this.pluginConfig();
+      // set the refresh token
+      pluginConfig.credentials.installId = this.config.credentials?.installId;
 
-          pluginConfig.credentials.isValidated = this.config.credentials?.isValidated;
-          if (this.config.credentials.isValidated) {
-            pluginConfig.credentials.validateCode = undefined;
-          }
+      this.debugWarnLog(`installId: ${pluginConfig.credentials.installId}`);
+      // save the config, ensuring we maintain pretty json
+      writeFileSync(this.api.user.configPath(), JSON.stringify(currentConfig, null, 4));
 
-          this.debugWarnLog(`isValidated: ${pluginConfig.credentials.isValidated}`);
-          this.debugWarnLog(`validateCode: ${pluginConfig.credentials.validateCode}`);
-
-          // save the config, ensuring we maintain pretty json
-          writeFileSync(this.api.user.configPath(), JSON.stringify(currentConfig, null, 4));
-          if (!isValidated) {
-            return;
-          } else {
-            try {
-              await this.discoverDevices();
-              this.debugWarnLog(`isValidated: ${this.config.credentials?.isValidated}`);
-            } catch (e: any) {
-              this.errorLog(`Validate, Discover Devices: ${e}`);
-            }
-          }
-        } else {
-          // load in the current config
-          const { pluginConfig, currentConfig } = await this.pluginConfig();
-          // set the refresh token
-          pluginConfig.credentials.installId = this.config.credentials?.installId;
-
-          this.debugWarnLog(`installId: ${pluginConfig.credentials.installId}`);
-          // save the config, ensuring we maintain pretty json
-          writeFileSync(this.api.user.configPath(), JSON.stringify(currentConfig, null, 4));
-
-          // A 6-digit code will be sent to your email or phone (depending on what you used for your augustId).
-          // Need some way to get this code from the user.
-          August.authorize(this.config.credentials!);
-          this.warnLog('Input Your August email verification code into the validateCode config and restart Homebridge.');
-        }
+      // A 6-digit code will be sent to your email or phone (depending on what you used for your augustId).
+      // Need some way to get this code from the user.
+      August.authorize(this.config.credentials!);
+      this.warnLog('Input Your August email verification code into the validateCode config and restart Homebridge.');
+    }
   }
 
   async augustCredentials() {

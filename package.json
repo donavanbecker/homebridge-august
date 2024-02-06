@@ -25,15 +25,13 @@
   "scripts": {
     "check": "npm install && npm outdated",
     "update": "ncu -u && npm update && npm install",
-    "updateDependencies": "npm run check && npm run update",
-    "lint": "eslint src/**.ts",
+    "lint": "eslint src/**/*.ts",
     "watch": "npm run build && npm run plugin-ui && npm link && nodemon",
     "plugin-ui": "rsync ./src/homebridge-ui/public/index.html ./dist/homebridge-ui/public/",
     "build": "rimraf ./dist && tsc",
     "prepublishOnly": "npm run lint && npm run build && npm run plugin-ui",
     "postpublish": "npm run clean",
-    "clean": "rimraf ./dist",
-    "test": "eslint src/**.ts"
+    "clean": "rimraf ./dist"
   },
   "funding": [
     {
@@ -57,9 +55,9 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@types/node": "^20.11.13",
-    "@typescript-eslint/eslint-plugin": "^6.20.0",
-    "@typescript-eslint/parser": "^6.20.0",
+    "@types/node": "^20.11.16",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.56.0",
     "homebridge": "^1.7.0",
     "homebridge-config-ui-x": "4.55.1",
